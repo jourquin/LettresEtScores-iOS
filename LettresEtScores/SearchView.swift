@@ -10,6 +10,7 @@ import SwiftUI
 struct SearchView: View {
     @StateObject private var viewModel: SearchViewModel
     @State private var ranking: Ranking = .longest
+    @State private var isShowingConstraintHelp = false
 
     private let wordCount: Int
 
@@ -28,6 +29,7 @@ struct SearchView: View {
             Form {
                 inputSection
                 constraintsSection
+                resultLimitSection
                 searchSection
                 stateSections
             }
@@ -47,6 +49,11 @@ struct SearchView: View {
                         )
                     )
                 }
+            }
+            .sheet(
+                isPresented: $isShowingConstraintHelp
+            ) {
+                ConstraintHelpView()
             }
         }
     }
@@ -71,12 +78,24 @@ struct SearchView: View {
 
     private var constraintsSection: some View {
         Section("Contraintes facultatives") {
-            TextField(
-                "Ex. ^J..A$;R",
-                text: $viewModel.constraints
-            )
-            .textInputAutocapitalization(.characters)
-            .autocorrectionDisabled()
+            HStack {
+                TextField(
+                    "Ex. ^J..A$;R",
+                    text: $viewModel.constraints
+                )
+                .textInputAutocapitalization(.characters)
+                .autocorrectionDisabled()
+
+                Button {
+                    isShowingConstraintHelp = true
+                } label: {
+                    Image(systemName: "questionmark.circle")
+                }
+                .buttonStyle(.borderless)
+                .accessibilityLabel(
+                    "Afficher l’aide sur les contraintes"
+                )
+            }
 
             Text(
                 "Séparez plusieurs expressions "
@@ -112,6 +131,27 @@ struct SearchView: View {
                 }
             }
             .disabled(!viewModel.canSearch)
+        }
+    }
+    
+    private var resultLimitSection: some View {
+        Section("Affichage") {
+            Stepper(
+                value: $viewModel.resultLimit,
+                in: SearchViewModel.resultLimitRange
+            ) {
+                Text(
+                    "Résultats par classement : "
+                    + "\(viewModel.resultLimit)"
+                )
+            }
+
+            Text(
+                "Ce nombre s’applique séparément aux mots "
+                + "les plus longs et aux meilleurs scores."
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
     }
 

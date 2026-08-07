@@ -104,4 +104,38 @@ struct SearchViewModelTests {
             "Saisissez au moins 2 lettres ou jokers."
         )
     }
+    
+    @Test
+    func appliesSelectedResultLimit() async throws {
+        let finder = try WordFinder(
+            words: [
+                "AA",
+                "AB",
+                "BA",
+                "BB"
+            ]
+        )
+
+        let viewModel = SearchViewModel(
+            finder: finder
+        )
+
+        viewModel.rack = "AABB"
+        viewModel.resultLimit = 2
+
+        await viewModel.search()
+
+        guard case .results(let result) =
+            viewModel.state
+        else {
+            Issue.record(
+                "Un résultat était attendu."
+            )
+            return
+        }
+
+        #expect(result.possibleCount == 4)
+        #expect(result.longest.count == 2)
+        #expect(result.highestScoring.count == 2)
+    }
 }

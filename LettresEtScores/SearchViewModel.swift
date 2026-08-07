@@ -16,10 +16,15 @@ final class SearchViewModel: ObservableObject {
         case results(SearchResult)
         case failed(String)
     }
+    
+    static let resultLimitRange = 1...20
+    static let defaultResultLimit = 10
 
     @Published var rack = ""
     @Published var constraints = ""
     @Published private(set) var state: State = .idle
+    @Published var resultLimit = defaultResultLimit
+    
 
     private let finder: WordFinder
 
@@ -49,6 +54,7 @@ final class SearchViewModel: ObservableObject {
         let finder = finder
         let rack = rack
         let constraints = constraints
+        let resultLimit = resultLimit
 
         state = .searching
 
@@ -58,6 +64,7 @@ final class SearchViewModel: ObservableObject {
             do {
                 let result = try finder.search(
                     rack,
+                    limit: resultLimit,
                     rawConstraints: constraints
                 )
 

@@ -12,6 +12,8 @@ Ce projet est le portage iOS de [LettresEtScores-Python](https://github.com/jour
 - calcul du score selon la valeur française des lettres ;
 - score nul pour une lettre remplacée par un joker ;
 - classement des résultats par longueur et par score ;
+- sélection de 1 à 20 résultats par classement, 10 par défaut ;
+- aide intégrée pour la syntaxe des contraintes ;
 - filtrage par une ou plusieurs expressions régulières séparées par `;` ;
 - lecture du corpus `ods9.txt` directement depuis l’archive `ods9.zip`, sans extraction sur disque ;
 - chargement et indexation du dictionnaire en arrière-plan, sans bloquer l’interface ;
