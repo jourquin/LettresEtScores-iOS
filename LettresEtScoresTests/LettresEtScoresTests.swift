@@ -8,12 +8,44 @@
 import Testing
 @testable import LettresEtScores
 
-struct LettresEtScoresTests {
+@MainActor
+struct RackNormalizerTests {
+    @Test
+    func acceptsAccentsSeparatorsAndJoker() throws {
+        let rack = try RackNormalizer.normalize("ç, h â t ?")
 
-    @Test func example() async throws {
-        // Write your test here and use APIs like `#expect(...)` to check expected conditions.
-        // Swift Testing Documentation
-        // https://developer.apple.com/documentation/testing
+        #expect(rack.letters == "CHAT")
+        #expect(rack.jokerCount == 1)
+        #expect(rack.tileCount == 5)
     }
 
+    @Test
+    func rejectsTooFewTiles() {
+        #expect(throws: RackError.self) {
+            try RackNormalizer.normalize("A")
+        }
+    }
+
+    @Test
+    func rejectsTooManyJokers() {
+        #expect(throws: RackError.self) {
+            try RackNormalizer.normalize("ABC???")
+        }
+    }
+
+    @Test
+    func acceptsFifteenTiles() throws {
+        let rack = try RackNormalizer.normalize("ABCDEFGHIJKLMNO")
+
+        #expect(rack.letters == "ABCDEFGHIJKLMNO")
+        #expect(rack.jokerCount == 0)
+        #expect(rack.tileCount == 15)
+    }
+
+    @Test
+    func rejectsSixteenTiles() {
+        #expect(throws: RackError.self) {
+            try RackNormalizer.normalize("ABCDEFGHIJKLMNOP")
+        }
+    }
 }

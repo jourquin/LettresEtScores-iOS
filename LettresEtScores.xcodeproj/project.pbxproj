@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		5272772F3025DF88001A7ABA /* RackNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5272772E3025D8A2001A7ABA /* RackNormalizer.swift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		523EF5F93024FEF5007E9BD9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -27,6 +31,7 @@
 		523EF5EB3024FEF3007E9BD9 /* LettresEtScores.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LettresEtScores.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		523EF5F83024FEF5007E9BD9 /* LettresEtScoresTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LettresEtScoresTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		523EF6023024FEF5007E9BD9 /* LettresEtScoresUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LettresEtScoresUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5272772E3025D8A2001A7ABA /* RackNormalizer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RackNormalizer.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -75,6 +80,7 @@
 		523EF5E23024FEF2007E9BD9 = {
 			isa = PBXGroup;
 			children = (
+				5272772D3025D88D001A7ABA /* Domain */,
 				523EF5ED3024FEF3007E9BD9 /* LettresEtScores */,
 				523EF5FB3024FEF5007E9BD9 /* LettresEtScoresTests */,
 				523EF6053024FEF5007E9BD9 /* LettresEtScoresUITests */,
@@ -90,6 +96,14 @@
 				523EF6023024FEF5007E9BD9 /* LettresEtScoresUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		5272772D3025D88D001A7ABA /* Domain */ = {
+			isa = PBXGroup;
+			children = (
+				5272772E3025D8A2001A7ABA /* RackNormalizer.swift */,
+			);
+			path = Domain;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -236,6 +250,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5272772F3025DF88001A7ABA /* RackNormalizer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
