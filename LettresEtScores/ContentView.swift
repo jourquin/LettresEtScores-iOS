@@ -17,9 +17,7 @@ struct ContentView: View {
                 loadingView
 
             case .ready(let finder):
-                readyView(
-                    wordCount: finder.wordCount
-                )
+                SearchView(finder: finder)
 
             case .failed(let message):
                 errorView(message: message)
@@ -44,26 +42,6 @@ struct ContentView: View {
             .font(.subheadline)
             .foregroundStyle(.secondary)
             .multilineTextAlignment(.center)
-        }
-        .padding()
-    }
-
-    private func readyView(
-        wordCount: Int
-    ) -> some View {
-        VStack(spacing: 16) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 48))
-                .foregroundStyle(.green)
-
-            Text("Dictionnaire prêt")
-                .font(.title2)
-                .fontWeight(.semibold)
-
-            Text(
-                "\(wordCount.formatted()) mots indexés"
-            )
-            .foregroundStyle(.secondary)
         }
         .padding()
     }
