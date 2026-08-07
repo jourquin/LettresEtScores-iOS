@@ -9,8 +9,10 @@ import SwiftUI
 
 struct SearchView: View {
     @StateObject private var viewModel: SearchViewModel
+
     @State private var ranking: Ranking = .longest
     @State private var isShowingConstraintHelp = false
+    @State private var selectedDefinition: DefinitionSelection?
 
     private let wordCount: Int
 
@@ -50,11 +52,14 @@ struct SearchView: View {
                     )
                 }
             }
-            .sheet(
-                isPresented: $isShowingConstraintHelp
-            ) {
-                ConstraintHelpView()
-            }
+        }
+        .sheet(
+            isPresented: $isShowingConstraintHelp
+        ) {
+            ConstraintHelpView()
+        }
+        .sheet(item: $selectedDefinition) { selection in
+            DefinitionView(word: selection.word)
         }
     }
 
@@ -106,6 +111,27 @@ struct SearchView: View {
         }
     }
 
+    private var resultLimitSection: some View {
+        Section("Affichage") {
+            Stepper(
+                value: $viewModel.resultLimit,
+                in: SearchViewModel.resultLimitRange
+            ) {
+                Text(
+                    "Résultats par classement : "
+                    + "\(viewModel.resultLimit)"
+                )
+            }
+
+            Text(
+                "Ce nombre s’applique séparément aux mots "
+                + "les plus longs et aux meilleurs scores."
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+    }
+
     private var searchSection: some View {
         Section {
             Button {
@@ -131,27 +157,6 @@ struct SearchView: View {
                 }
             }
             .disabled(!viewModel.canSearch)
-        }
-    }
-    
-    private var resultLimitSection: some View {
-        Section("Affichage") {
-            Stepper(
-                value: $viewModel.resultLimit,
-                in: SearchViewModel.resultLimitRange
-            ) {
-                Text(
-                    "Résultats par classement : "
-                    + "\(viewModel.resultLimit)"
-                )
-            }
-
-            Text(
-                "Ce nombre s’applique séparément aux mots "
-                + "les plus longs et aux meilleurs scores."
-            )
-            .font(.caption)
-            .foregroundStyle(.secondary)
         }
     }
 
@@ -189,7 +194,9 @@ struct SearchView: View {
         _ result: SearchResult
     ) -> some View {
         Section("Résultat") {
-            Text(possibleWordsText(result.possibleCount))
+            Text(
+                possibleWordsText(result.possibleCount)
+            )
 
             Text(
                 "Tirage normalisé : "
@@ -220,12 +227,25 @@ struct SearchView: View {
 
             Section {
                 ForEach(
-                    Array(candidates(from: result).enumerated()),
+                    Array(
+                        candidates(from: result).enumerated()
+                    ),
                     id: \.element.word
                 ) { index, candidate in
-                    CandidateRow(
-                        rank: index + 1,
-                        candidate: candidate
+                    Button {
+                        selectedDefinition =
+                            DefinitionSelection(
+                                word: candidate.word
+                            )
+                    } label: {
+                        CandidateRow(
+                            rank: index + 1,
+                            candidate: candidate
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .accessibilityHint(
+                        "Affiche un extrait du Wiktionnaire"
                     )
                 }
             }
@@ -257,18 +277,23 @@ struct SearchView: View {
     private func possibleWordsText(
         _ count: Int
     ) -> String {
-        if count == 0 {
+        switch count {
+        case 0:
             return "Aucun mot réalisable"
-        }
 
-        if count == 1 {
+        case 1:
             return "1 mot réalisable"
-        }
 
-        return "\(count.formatted()) mots réalisables"
+        default:
+            return "\(count.formatted()) mots réalisables"
+        }
     }
 
-    private enum Ranking: String, CaseIterable, Identifiable {
+    private enum Ranking:
+        String,
+        CaseIterable,
+        Identifiable
+    {
         case longest = "Plus longs"
         case highestScoring = "Meilleurs scores"
 
@@ -286,22 +311,39 @@ private struct CandidateRow: View {
         HStack {
             Text("\(rank).")
                 .foregroundStyle(.secondary)
-                .frame(width: 28, alignment: .trailing)
+                .frame(
+                    width: 28,
+                    alignment: .trailing
+                )
 
             Text(candidate.word)
                 .font(.headline)
 
             Spacer()
 
-            VStack(alignment: .trailing, spacing: 2) {
+            VStack(
+                alignment: .trailing,
+                spacing: 2
+            ) {
                 Text("\(candidate.score) pts")
                     .fontWeight(.semibold)
 
-                Text("\(candidate.length) lettres")
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+                Text(
+                    "\(candidate.length) lettres"
+                )
+                .font(.caption)
+                .foregroundStyle(.secondary)
             }
         }
+        .contentShape(Rectangle())
+    }
+}
+
+private struct DefinitionSelection: Identifiable {
+    let word: String
+
+    var id: String {
+        word
     }
 }
 

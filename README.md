@@ -1,6 +1,6 @@
 # Lettres & Scores — iOS
 
-Lettres & Scores est une application iOS écrite en Swift et SwiftUI. Elle recherche les mots français réalisables à partir d’un tirage de lettres, avec prise en charge des jokers, du calcul des points et de contraintes de recherche par expressions régulières.
+Lettres & Scores est une application iOS écrite en Swift et SwiftUI. Elle rƒecherche les mots français réalisables à partir d’un tirage de lettres, avec prise en charge des jokers, du calcul des points et de contraintes de recherche par expressions régulières.
 
 Ce projet est le portage iOS de [LettresEtScores-Python](https://github.com/jourquin/LettresEtScores-Python).
 
@@ -75,7 +75,7 @@ Le package doit apparaître à la fois :
 
 ## Tests
 
-Le projet comporte actuellement **29 tests unitaires**. Ils couvrent notamment :
+Le projet comporte actuellement **35 tests unitaires**. Ils couvrent notamment :
 
 - la normalisation et la validation des tirages ;
 - la recherche, le score et l’utilisation des jokers ;
@@ -85,6 +85,7 @@ Le projet comporte actuellement **29 tests unitaires**. Ils couvrent notamment :
 - l’initialisation du moteur depuis une archive ;
 - le chargement asynchrone unique du corpus et la gestion des erreurs ;
 - le modèle de vue de recherche et l’exposition des deux classements.
+- consultation du Wiktionnaire
 
 Les tests peuvent être lancés depuis le navigateur de tests de Xcode (`⌘6`) ou avec la commande `xcodebuild` adaptée au schéma et au simulateur utilisés.
 
