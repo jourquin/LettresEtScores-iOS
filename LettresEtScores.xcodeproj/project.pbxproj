@@ -60,6 +60,11 @@
 			path = LettresEtScoresUITests;
 			sourceTree = "<group>";
 		};
+		529017243026062C00A0618B /* Resources */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Resources;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,6 +95,7 @@
 		523EF5E23024FEF2007E9BD9 = {
 			isa = PBXGroup;
 			children = (
+				529017243026062C00A0618B /* Resources */,
 				5272772D3025D88D001A7ABA /* Domain */,
 				523EF5ED3024FEF3007E9BD9 /* LettresEtScores */,
 				523EF5FB3024FEF5007E9BD9 /* LettresEtScoresTests */,
@@ -138,6 +144,7 @@
 			);
 			fileSystemSynchronizedGroups = (
 				523EF5ED3024FEF3007E9BD9 /* LettresEtScores */,
+				529017243026062C00A0618B /* Resources */,
 			);
 			name = LettresEtScores;
 			packageProductDependencies = (
