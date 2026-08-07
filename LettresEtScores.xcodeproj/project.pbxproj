@@ -12,6 +12,7 @@
 		52EDF6AC3025F12300C6FF1B /* SearchResults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52EDF6AB3025F11700C6FF1B /* SearchResults.swift */; };
 		52EDF6AE3025F14100C6FF1B /* WordFinder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52EDF6AD3025F13B00C6FF1B /* WordFinder.swift */; };
 		52EDF6B33025F32100C6FF1B /* ConstraintCompiler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52EDF6B23025F31E00C6FF1B /* ConstraintCompiler.swift */; };
+		52EDF6B83025F58800C6FF1B /* WordListLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52EDF6B73025F58500C6FF1B /* WordListLoader.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,6 +41,7 @@
 		52EDF6AB3025F11700C6FF1B /* SearchResults.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchResults.swift; sourceTree = "<group>"; };
 		52EDF6AD3025F13B00C6FF1B /* WordFinder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordFinder.swift; sourceTree = "<group>"; };
 		52EDF6B23025F31E00C6FF1B /* ConstraintCompiler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConstraintCompiler.swift; sourceTree = "<group>"; };
+		52EDF6B73025F58500C6FF1B /* WordListLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordListLoader.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -109,6 +111,7 @@
 		5272772D3025D88D001A7ABA /* Domain */ = {
 			isa = PBXGroup;
 			children = (
+				52EDF6B73025F58500C6FF1B /* WordListLoader.swift */,
 				52EDF6B23025F31E00C6FF1B /* ConstraintCompiler.swift */,
 				52EDF6AD3025F13B00C6FF1B /* WordFinder.swift */,
 				52EDF6AB3025F11700C6FF1B /* SearchResults.swift */,
@@ -266,6 +269,7 @@
 				52EDF6B33025F32100C6FF1B /* ConstraintCompiler.swift in Sources */,
 				52EDF6AC3025F12300C6FF1B /* SearchResults.swift in Sources */,
 				52EDF6AA3025F0AD00C6FF1B /* Candidate.swift in Sources */,
+				52EDF6B83025F58800C6FF1B /* WordListLoader.swift in Sources */,
 				52EDF6AE3025F14100C6FF1B /* WordFinder.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
