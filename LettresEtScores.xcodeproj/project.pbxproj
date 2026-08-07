@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		5205819F30261E71002E89C5 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = 5205819E30261E71002E89C5 /* ZIPFoundation */; };
+		520581A13026207D002E89C5 /* WordFinderStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 520581A030262078002E89C5 /* WordFinderStore.swift */; };
 		5272772F3025DF88001A7ABA /* RackNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5272772E3025D8A2001A7ABA /* RackNormalizer.swift */; };
 		52EDF6AA3025F0AD00C6FF1B /* Candidate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52EDF6A93025F07700C6FF1B /* Candidate.swift */; };
 		52EDF6AC3025F12300C6FF1B /* SearchResults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52EDF6AB3025F11700C6FF1B /* SearchResults.swift */; };
@@ -34,6 +35,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		520581A030262078002E89C5 /* WordFinderStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordFinderStore.swift; sourceTree = "<group>"; };
 		523EF5EB3024FEF3007E9BD9 /* LettresEtScores.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LettresEtScores.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		523EF5F83024FEF5007E9BD9 /* LettresEtScoresTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LettresEtScoresTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		523EF6023024FEF5007E9BD9 /* LettresEtScoresUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = LettresEtScoresUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -127,6 +129,7 @@
 		5272772D3025D88D001A7ABA /* Domain */ = {
 			isa = PBXGroup;
 			children = (
+				520581A030262078002E89C5 /* WordFinderStore.swift */,
 				52EDF6B73025F58500C6FF1B /* WordListLoader.swift */,
 				52EDF6B23025F31E00C6FF1B /* ConstraintCompiler.swift */,
 				52EDF6AD3025F13B00C6FF1B /* WordFinder.swift */,
@@ -287,6 +290,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5272772F3025DF88001A7ABA /* RackNormalizer.swift in Sources */,
+				520581A13026207D002E89C5 /* WordFinderStore.swift in Sources */,
 				52EDF6B33025F32100C6FF1B /* ConstraintCompiler.swift in Sources */,
 				52EDF6AC3025F12300C6FF1B /* SearchResults.swift in Sources */,
 				52EDF6AA3025F0AD00C6FF1B /* Candidate.swift in Sources */,

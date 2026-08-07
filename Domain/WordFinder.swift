@@ -12,7 +12,7 @@ enum WordFinderError: Error, Equatable {
     case invalidLimit
 }
 
-struct WordFinder {
+struct WordFinder: Sendable {
     private struct Entry: Sendable {
         let word: String
         let counts: [UInt8]

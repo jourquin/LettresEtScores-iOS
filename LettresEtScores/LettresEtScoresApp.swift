@@ -9,9 +9,12 @@ import SwiftUI
 
 @main
 struct LettresEtScoresApp: App {
+    @StateObject private var wordFinderStore =
+        WordFinderStore()
+
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            ContentView(store: wordFinderStore)
         }
     }
 }
