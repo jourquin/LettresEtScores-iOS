@@ -56,4 +56,45 @@ struct WordListLoaderTests {
             )
         }
     }
+    
+    @Test
+    func loadsWordsFromZipResource() throws {
+        let words = try WordListLoader.loadWords(
+            fromArchiveNamed: "test_words",
+            entryNamed: "test_words.txt",
+            bundle: testBundle
+        )
+
+        #expect(words.count == 9)
+        #expect(words.first == "AXE")
+        #expect(words.last == "ABCDEFGHIJKLMNOP")
+    }
+
+    @Test
+    func buildsWordFinderFromZipResource() throws {
+        let finder = try WordFinder(
+            archiveResource: "test_words",
+            entryName: "test_words.txt",
+            bundle: testBundle
+        )
+
+        #expect(finder.wordCount == 7)
+
+        let result = try finder.search("CHATS")
+
+        #expect(result.possibleCount == 2)
+        #expect(result.longest.first?.word == "CHATS")
+        #expect(result.longest.first?.score == 10)
+    }
+
+    @Test
+    func rejectsMissingArchiveEntry() {
+        #expect(throws: WordListLoaderError.self) {
+            try WordListLoader.loadWords(
+                fromArchiveNamed: "test_words",
+                entryNamed: "missing.txt",
+                bundle: testBundle
+            )
+        }
+    }
 }

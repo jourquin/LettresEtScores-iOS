@@ -22,9 +22,9 @@ Ce projet est le portage iOS de [LettresEtScores-Python](https://github.com/jour
 - un SDK iOS compatible avec le projet ;
 - le fichier lexical `ods9.txt` ajouté aux ressources de la cible de l'application.
 
-## Dictionnaire `ods9.txt` : origine et avertissement
+## Dictionnaire `ods9.zip` : origine et avertissement
 
-Le fichier `LettresEtScores/Resources/ods9.txt` a été créé à partir des données encodées dans le dépôt tiers [Thecoolsim/ODS9](https://github.com/Thecoolsim/ODS9), attribué dans ce dépôt à Simon Adjatan.
+Le fichier `LettresEtScores/Resources/ods9.zip`, qui contient le fichier `ods9.txt` comme seule entrée, a été créé à partir des données encodées dans le dépôt tiers [Thecoolsim/ODS9](https://github.com/Thecoolsim/ODS9), attribué dans ce dépôt à Simon Adjatan.
 
 Le dépôt source comporte une licence MIT. Sa documentation ne précise toutefois pas séparément et sans ambiguïté le statut juridique des données lexicales encodées dans `words.js`. Par conséquent :
 
