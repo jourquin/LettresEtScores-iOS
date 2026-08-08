@@ -40,33 +40,28 @@ final class LettresEtScoresUITests: XCTestCase {
         rackField.typeText("CHATS")
 
         let searchButton =
-            app.buttons["searchButton"]
+            app.descendants(matching: .any)[
+                "searchButton"
+            ]
 
         XCTAssertTrue(
-            searchButton.waitForExistence(timeout: 2)
+            reveal(searchButton, in: app),
+            "Le bouton Rechercher reste introuvable."
         )
 
-        if !searchButton.isHittable {
-            app.swipeUp()
-        }
-
-        XCTAssertTrue(searchButton.isHittable)
         XCTAssertTrue(searchButton.isEnabled)
-
         searchButton.tap()
 
         let candidate =
-            app.buttons["candidate.CHATS"]
+            app.descendants(matching: .any)[
+                "candidate.CHATS"
+            ]
 
         XCTAssertTrue(
-            candidate.waitForExistence(timeout: 5)
+            reveal(candidate, in: app),
+            "Le candidat CHATS reste introuvable."
         )
 
-        if !candidate.isHittable {
-            app.swipeUp()
-        }
-
-        XCTAssertTrue(candidate.isHittable)
         candidate.tap()
 
         XCTAssertTrue(
@@ -86,9 +81,18 @@ final class LettresEtScoresUITests: XCTestCase {
             "Définition simulée pour CHATS."
         )
 
+        let fullDefinitionLink =
+            app.descendants(matching: .any)[
+                "fullDefinitionLink"
+            ]
+
         XCTAssertTrue(
-            app.links["Ouvrir la page complète"]
-                .exists
+            fullDefinitionLink.waitForExistence(timeout: 5)
+        )
+
+        XCTAssertEqual(
+            fullDefinitionLink.label,
+            "Ouvrir la page complète"
         )
     }
 
@@ -98,5 +102,22 @@ final class LettresEtScoresUITests: XCTestCase {
         measure(metrics: [XCTApplicationLaunchMetric()]) {
             XCUIApplication().launch()
         }
+    }
+    
+    @MainActor
+    private func reveal(
+        _ element: XCUIElement,
+        in app: XCUIApplication,
+        maximumSwipes: Int = 6
+    ) -> Bool {
+        for _ in 0..<maximumSwipes {
+            if element.exists && element.isHittable {
+                return true
+            }
+
+            app.swipeUp()
+        }
+
+        return element.exists && element.isHittable
     }
 }

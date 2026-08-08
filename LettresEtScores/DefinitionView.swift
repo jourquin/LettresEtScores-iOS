@@ -98,6 +98,7 @@ struct DefinitionView: View {
                     "Ouvrir la page complète",
                     destination: definition.sourceURL
                 )
+                .accessibilityIdentifier("fullDefinitionLink")
             }
             .padding()
         }
