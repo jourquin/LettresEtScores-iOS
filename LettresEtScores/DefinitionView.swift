@@ -14,10 +14,15 @@ struct DefinitionView: View {
     @StateObject private var viewModel:
         DefinitionViewModel
 
-    init(word: String) {
+    init(
+        word: String,
+        loader: @escaping DefinitionLoader =
+            DefinitionLoaders.live
+    ) {
         _viewModel = StateObject(
             wrappedValue: DefinitionViewModel(
-                word: word
+                word: word,
+                loader: loader
             )
         )
     }
@@ -77,8 +82,9 @@ struct DefinitionView: View {
                         alignment: .leading
                     )
                     .textSelection(.enabled)
-
-                Divider()
+                    .accessibilityIdentifier(
+                        "definitionExtract"
+                    )
 
                 Text(
                     "Extrait du Wiktionnaire. "

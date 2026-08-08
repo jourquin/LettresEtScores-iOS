@@ -23,14 +23,73 @@ final class LettresEtScoresUITests: XCTestCase {
     }
 
     @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
+    func testSearchAndOpenDefinition() throws {
         let app = XCUIApplication()
+
+        app.launchArguments.append("--ui-testing")
         app.launch()
 
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // XCUIAutomation Documentation
-        // https://developer.apple.com/documentation/xcuiautomation
+        let rackField =
+            app.textFields["rackTextField"]
+
+        XCTAssertTrue(
+            rackField.waitForExistence(timeout: 5)
+        )
+
+        rackField.tap()
+        rackField.typeText("CHATS")
+
+        let searchButton =
+            app.buttons["searchButton"]
+
+        XCTAssertTrue(
+            searchButton.waitForExistence(timeout: 2)
+        )
+
+        if !searchButton.isHittable {
+            app.swipeUp()
+        }
+
+        XCTAssertTrue(searchButton.isHittable)
+        XCTAssertTrue(searchButton.isEnabled)
+
+        searchButton.tap()
+
+        let candidate =
+            app.buttons["candidate.CHATS"]
+
+        XCTAssertTrue(
+            candidate.waitForExistence(timeout: 5)
+        )
+
+        if !candidate.isHittable {
+            app.swipeUp()
+        }
+
+        XCTAssertTrue(candidate.isHittable)
+        candidate.tap()
+
+        XCTAssertTrue(
+            app.navigationBars["CHATS"]
+                .waitForExistence(timeout: 5)
+        )
+
+        let definition =
+            app.staticTexts["definitionExtract"]
+
+        XCTAssertTrue(
+            definition.waitForExistence(timeout: 5)
+        )
+
+        XCTAssertEqual(
+            definition.label,
+            "Définition simulée pour CHATS."
+        )
+
+        XCTAssertTrue(
+            app.links["Ouvrir la page complète"]
+                .exists
+        )
     }
 
     @MainActor

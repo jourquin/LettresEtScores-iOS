@@ -9,6 +9,17 @@
 import Combine
 import Foundation
 
+typealias DefinitionLoader = @Sendable (
+    String
+) async throws -> WordDefinition
+
+enum DefinitionLoaders {
+    static let live: DefinitionLoader = { word in
+        try await WiktionaryClient()
+            .definition(for: word)
+    }
+}
+
 @MainActor
 final class DefinitionViewModel:
     ObservableObject
@@ -20,23 +31,17 @@ final class DefinitionViewModel:
         case failed(String)
     }
 
-    typealias Loader = @Sendable (
-        String
-    ) async throws -> WordDefinition
-
     let word: String
 
     @Published private(set) var state:
         State = .idle
 
-    private let loader: Loader
+    private let loader: DefinitionLoader
 
     init(
         word: String,
-        loader: @escaping Loader = { word in
-            try await WiktionaryClient()
-                .definition(for: word)
-        }
+        loader: @escaping DefinitionLoader =
+            DefinitionLoaders.live
     ) {
         self.word = word
         self.loader = loader
