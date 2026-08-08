@@ -10,6 +10,20 @@ import SwiftUI
 struct ContentView: View {
     @ObservedObject var store: WordFinderStore
 
+    private let definitionLoader: DefinitionLoader
+
+    init(
+        store: WordFinderStore,
+        definitionLoader: @escaping DefinitionLoader =
+            DefinitionLoaders.live
+    ) {
+        _store = ObservedObject(
+            wrappedValue: store
+        )
+
+        self.definitionLoader = definitionLoader
+    }
+    
     var body: some View {
         Group {
             switch store.state {
@@ -17,7 +31,10 @@ struct ContentView: View {
                 loadingView
 
             case .ready(let finder):
-                SearchView(finder: finder)
+                SearchView(
+                    finder: finder,
+                    definitionLoader: definitionLoader
+                )
 
             case .failed(let message):
                 errorView(message: message)

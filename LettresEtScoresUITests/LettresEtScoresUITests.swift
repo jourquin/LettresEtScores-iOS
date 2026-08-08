@@ -23,14 +23,77 @@ final class LettresEtScoresUITests: XCTestCase {
     }
 
     @MainActor
-    func testExample() throws {
-        // UI tests must launch the application that they test.
+    func testSearchAndOpenDefinition() throws {
         let app = XCUIApplication()
+
+        app.launchArguments.append("--ui-testing")
         app.launch()
 
-        // Use XCTAssert and related functions to verify your tests produce the correct results.
-        // XCUIAutomation Documentation
-        // https://developer.apple.com/documentation/xcuiautomation
+        let rackField =
+            app.textFields["rackTextField"]
+
+        XCTAssertTrue(
+            rackField.waitForExistence(timeout: 5)
+        )
+
+        rackField.tap()
+        rackField.typeText("CHATS")
+
+        let searchButton =
+            app.descendants(matching: .any)[
+                "searchButton"
+            ]
+
+        XCTAssertTrue(
+            reveal(searchButton, in: app),
+            "Le bouton Rechercher reste introuvable."
+        )
+
+        XCTAssertTrue(searchButton.isEnabled)
+        searchButton.tap()
+
+        let candidate =
+            app.descendants(matching: .any)[
+                "candidate.CHATS"
+            ]
+
+        XCTAssertTrue(
+            reveal(candidate, in: app),
+            "Le candidat CHATS reste introuvable."
+        )
+
+        candidate.tap()
+
+        XCTAssertTrue(
+            app.navigationBars["CHATS"]
+                .waitForExistence(timeout: 5)
+        )
+
+        let definition =
+            app.staticTexts["definitionExtract"]
+
+        XCTAssertTrue(
+            definition.waitForExistence(timeout: 5)
+        )
+
+        XCTAssertEqual(
+            definition.label,
+            "Définition simulée pour CHATS."
+        )
+
+        let fullDefinitionLink =
+            app.descendants(matching: .any)[
+                "fullDefinitionLink"
+            ]
+
+        XCTAssertTrue(
+            fullDefinitionLink.waitForExistence(timeout: 5)
+        )
+
+        XCTAssertEqual(
+            fullDefinitionLink.label,
+            "Ouvrir la page complète"
+        )
     }
 
     @MainActor
@@ -39,5 +102,22 @@ final class LettresEtScoresUITests: XCTestCase {
         measure(metrics: [XCTApplicationLaunchMetric()]) {
             XCUIApplication().launch()
         }
+    }
+    
+    @MainActor
+    private func reveal(
+        _ element: XCUIElement,
+        in app: XCUIApplication,
+        maximumSwipes: Int = 6
+    ) -> Bool {
+        for _ in 0..<maximumSwipes {
+            if element.exists && element.isHittable {
+                return true
+            }
+
+            app.swipeUp()
+        }
+
+        return element.exists && element.isHittable
     }
 }

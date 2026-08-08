@@ -15,8 +15,13 @@ struct SearchView: View {
     @State private var selectedDefinition: DefinitionSelection?
 
     private let wordCount: Int
+    private let definitionLoader: DefinitionLoader
 
-    init(finder: WordFinder) {
+    init(
+        finder: WordFinder,
+        definitionLoader: @escaping DefinitionLoader =
+            DefinitionLoaders.live
+    ) {
         _viewModel = StateObject(
             wrappedValue: SearchViewModel(
                 finder: finder
@@ -24,6 +29,7 @@ struct SearchView: View {
         )
 
         wordCount = finder.wordCount
+        self.definitionLoader = definitionLoader
     }
 
     var body: some View {
@@ -35,6 +41,7 @@ struct SearchView: View {
                 searchSection
                 stateSections
             }
+            .scrollDismissesKeyboard(.interactively)
             .navigationTitle("Lettres & Scores")
             .toolbar {
                 ToolbarItem(
@@ -44,11 +51,11 @@ struct SearchView: View {
                         viewModel.clear()
                     }
                     .disabled(
-                        viewModel.isSearching ||
-                        (
-                            viewModel.rack.isEmpty &&
-                            viewModel.constraints.isEmpty
-                        )
+                        viewModel.isSearching
+                            || (
+                                viewModel.rack.isEmpty
+                                    && viewModel.constraints.isEmpty
+                            )
                     )
                 }
             }
@@ -59,7 +66,10 @@ struct SearchView: View {
             ConstraintHelpView()
         }
         .sheet(item: $selectedDefinition) { selection in
-            DefinitionView(word: selection.word)
+            DefinitionView(
+                word: selection.word,
+                loader: definitionLoader
+            )
         }
     }
 
@@ -71,10 +81,11 @@ struct SearchView: View {
             )
             .textInputAutocapitalization(.characters)
             .autocorrectionDisabled()
+            .accessibilityIdentifier("rackTextField")
 
             Text(
                 "De 2 à 15 tuiles. Utilisez ? ou * "
-                + "pour un joker."
+                    + "pour un joker."
             )
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -104,7 +115,7 @@ struct SearchView: View {
 
             Text(
                 "Séparez plusieurs expressions "
-                + "régulières par un point-virgule."
+                    + "régulières par un point-virgule."
             )
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -119,13 +130,13 @@ struct SearchView: View {
             ) {
                 Text(
                     "Résultats par classement : "
-                    + "\(viewModel.resultLimit)"
+                        + "\(viewModel.resultLimit)"
                 )
             }
 
             Text(
                 "Ce nombre s’applique séparément aux mots "
-                + "les plus longs et aux meilleurs scores."
+                    + "les plus longs et aux meilleurs scores."
             )
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -157,6 +168,7 @@ struct SearchView: View {
                 }
             }
             .disabled(!viewModel.canSearch)
+            .accessibilityIdentifier("searchButton")
         }
     }
 
@@ -200,7 +212,7 @@ struct SearchView: View {
 
             Text(
                 "Tirage normalisé : "
-                + normalizedRack(result)
+                    + normalizedRack(result)
             )
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -244,6 +256,9 @@ struct SearchView: View {
                         )
                     }
                     .buttonStyle(.plain)
+                    .accessibilityIdentifier(
+                        "candidate.\(candidate.word)"
+                    )
                     .accessibilityHint(
                         "Affiche un extrait du Wiktionnaire"
                     )
@@ -268,10 +283,10 @@ struct SearchView: View {
         _ result: SearchResult
     ) -> String {
         result.normalizedLetters
-        + String(
-            repeating: "?",
-            count: result.jokerCount
-        )
+            + String(
+                repeating: "?",
+                count: result.jokerCount
+            )
     }
 
     private func possibleWordsText(
