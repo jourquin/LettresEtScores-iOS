@@ -38,14 +38,23 @@ final class LettresEtScoresUITests: XCTestCase {
 
         rackField.tap()
         rackField.typeText("CHATS")
-
-        let searchButton =
-            app.descendants(matching: .any)[
-                "searchButton"
-            ]
+        
+        let form = scrollContainer(in: app)
 
         XCTAssertTrue(
-            reveal(searchButton, in: app),
+            form.waitForExistence(timeout: 2),
+            "Le formulaire reste introuvable."
+        )
+
+        if app.keyboards.firstMatch.exists {
+            rackField.typeText("\n")
+        }
+
+        let searchButton =
+            app.buttons["searchButton"]
+
+        XCTAssertTrue(
+            reveal(searchButton, byScrolling: form),
             "Le bouton Rechercher reste introuvable."
         )
 
@@ -53,12 +62,10 @@ final class LettresEtScoresUITests: XCTestCase {
         searchButton.tap()
 
         let candidate =
-            app.descendants(matching: .any)[
-                "candidate.CHATS"
-            ]
+            app.buttons["candidate.CHATS"]
 
         XCTAssertTrue(
-            reveal(candidate, in: app),
+            reveal(candidate, byScrolling: form),
             "Le candidat CHATS reste introuvable."
         )
 
@@ -105,9 +112,29 @@ final class LettresEtScoresUITests: XCTestCase {
     }
     
     @MainActor
+    private func scrollContainer(
+        in app: XCUIApplication
+    ) -> XCUIElement {
+        let collectionView =
+            app.collectionViews.firstMatch
+
+        if collectionView.exists {
+            return collectionView
+        }
+
+        let table = app.tables.firstMatch
+
+        if table.exists {
+            return table
+        }
+
+        return app
+    }
+
+    @MainActor
     private func reveal(
         _ element: XCUIElement,
-        in app: XCUIApplication,
+        byScrolling container: XCUIElement,
         maximumSwipes: Int = 6
     ) -> Bool {
         for _ in 0..<maximumSwipes {
@@ -115,7 +142,7 @@ final class LettresEtScoresUITests: XCTestCase {
                 return true
             }
 
-            app.swipeUp()
+            container.swipeUp()
         }
 
         return element.exists && element.isHittable

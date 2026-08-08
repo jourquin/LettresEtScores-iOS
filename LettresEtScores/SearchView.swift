@@ -41,7 +41,7 @@ struct SearchView: View {
                 searchSection
                 stateSections
             }
-            .scrollDismissesKeyboard(.interactively)
+            .scrollDismissesKeyboard(.immediately)
             .navigationTitle("Lettres & Scores")
             .toolbar {
                 ToolbarItem(
