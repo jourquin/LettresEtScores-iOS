@@ -1,3 +1,5 @@
+<!-- Révision Morphalou/DEFLATE du 2026-08-09 -->
+
 # Lettres & Scores — iOS
 
 Lettres & Scores est une application iOS écrite en Swift et SwiftUI. Elle recherche les mots français réalisables à partir d’un tirage de lettres, avec prise en charge des jokers, du calcul des points et de contraintes de recherche par expressions régulières.
@@ -8,15 +10,15 @@ Ce projet est le portage iOS de [LettresEtScores-Python](https://github.com/jour
 
 - normalisation et validation des tirages de 2 à 15 tuiles ;
 - prise en charge des lettres accentuées, des séparateurs et des jokers (`?` ou `*`) ;
-- recherche des mots réalisables dans le corpus ODS9 embarqué ;
+- recherche des mots réalisables dans un lexique français ouvert embarqué ;
 - calcul du score selon la valeur française des lettres ;
 - score nul pour une lettre remplacée par un joker ;
 - classement des résultats par longueur et par score ;
 - sélection de 1 à 20 résultats par classement, 10 par défaut ;
 - aide intégrée pour la syntaxe des contraintes ;
 - filtrage par une ou plusieurs expressions régulières séparées par `;` ;
-- lecture du corpus `ods9.txt` directement depuis l’archive `ods9.zip`, sans extraction sur disque ;
-- chargement et indexation du dictionnaire en arrière-plan, sans bloquer l’interface ;
+- décompression native en mémoire du corpus DEFLATE, sans dépendance tierce ni extraction sur disque ;
+- chargement et indexation du lexique en arrière-plan afin de ne pas bloquer l’interface ;
 - interface SwiftUI de saisie, de recherche et d’affichage des résultats ;
 - consultation d’un extrait de définition et de la page complète sur le Wiktionnaire ;
 - tests unitaires avec Swift Testing et tests d’interface avec XCUITest.
@@ -24,11 +26,22 @@ Ce projet est le portage iOS de [LettresEtScores-Python](https://github.com/jour
 ## Prérequis
 
 - un Mac équipé de Xcode ;
-- iOS 17.6 ou une version ultérieure pour l’appareil ou le simulateur ;
-- [ZIPFoundation](https://github.com/weichsel/ZIPFoundation), intégré avec Swift Package Manager ;
-- l’archive lexicale `Resources/ods9.zip` incluse dans les ressources de la cible de l’application.
+- iOS 17.6 ou une version ultérieure pour l’appareil ou le simulateur.
 
-Une connexion à Internet est nécessaire pour consulter les définitions du Wiktionnaire. La recherche dans le corpus ODS9 reste disponible hors ligne.
+Une connexion à Internet est nécessaire pour consulter les définitions du Wiktionnaire. La recherche dans le lexique embarqué reste disponible hors ligne.
+
+## Ouverture du projet
+
+Clonez le dépôt, puis ouvrez `LettresEtScores.xcodeproj` dans Xcode :
+
+```bash
+git clone https://github.com/jourquin/LettresEtScores-iOS.git
+open LettresEtScores-iOS/LettresEtScores.xcodeproj
+```
+
+Le lexique français ouvert est déjà inclus dans le dépôt. Le projet n’utilise aucune dépendance logicielle tierce : aucune copie de fichier ni installation manuelle n’est nécessaire.
+
+Sélectionnez ensuite un simulateur ou un iPhone comme destination, puis lancez l’application avec **Run** (`⌘R`). L’installation sur un appareil physique nécessite en plus la configuration décrite ci-dessous.
 
 ## Installation sur un iPhone avec Xcode
 
@@ -62,68 +75,45 @@ Avec une Personal Team gratuite, le profil d’approvisionnement expire après 7
 
 La confiance accordée au Mac et l’approbation du développeur sont deux opérations distinctes. Le [guide Apple sur l’alerte « Faire confiance à cet ordinateur »](https://support.apple.com/109054) explique la première ; la seconde autorise l’exécution de l’application signée localement.
 
-## Corpus ODS9 : origine et avertissement
+## Lexique français ouvert
 
-L’archive `Resources/ods9.zip` contient le fichier lexical `ods9.txt`. Celui-ci a été créé à partir des données encodées dans le dépôt tiers [Thecoolsim/ODS9](https://github.com/Thecoolsim/ODS9), attribué dans ce dépôt à Simon Adjatan.
+`Resources/lexique-francais.deflate` contient **402 448 formes** construites à partir de [Morphalou 3.1](https://hdl.handle.net/11403/morphalou/v3.1), ressource de l’ATILF diffusée sous LGPL-LR.
 
-Le dépôt source comporte une licence MIT. Sa documentation ne précise toutefois pas séparément et sans ambiguïté le statut juridique des données lexicales encodées dans `words.js`. Par conséquent :
+Le corpus est généré sans consulter l’ODS. Les formes sont notamment corroborées par au moins deux lexiques d’origine dans Morphalou, normalisées en lettres `A–Z`, limitées à 2–15 lettres, dédoublonnées et triées. Il ne constitue ni une reproduction de l’ODS ni une référence officielle pour les compétitions.
 
-- la licence MIT du présent projet couvre le code de Lettres & Scores, mais ne prétend pas accorder de droits supplémentaires sur `ods9.txt`, sur `ods9.zip` ni sur les données lexicales tierces dont ils sont dérivés ;
-- la présence de cette archive dans le dépôt ne signifie pas que la liste constitue une publication officielle de Larousse, de la Fédération internationale de Scrabble francophone (FISF) ou de toute autre institution ;
-- cette liste ne constitue pas, à elle seule, une référence homologuée pour la compétition ;
+Le fichier `.deflate` n’est pas une archive : après décompression, il contient uniquement les mots, à raison d’une forme par ligne. La licence, la notice de modification et le rapport de construction restent consultables séparément dans `Corpus/` :
 
+- [LICENSE-Morphalou-LGPL-LR.txt](Corpus/LICENSE-Morphalou-LGPL-LR.txt) ;
+- [NOTICE.txt](Corpus/NOTICE.txt) ;
+- [BUILD-REPORT.json](Corpus/BUILD-REPORT.json).
 
-Le corpus est fourni pour les besoins du projet, sans garantie d’exhaustivité, d’exactitude ni d’adéquation à un usage particulier. Sa compression dans une archive ZIP ne modifie ni sa provenance ni les droits qui peuvent lui être applicables.
-
-## Intégration du dictionnaire
-
-L’archive doit se trouver sous le nom exact :
-
-```text
-Resources/ods9.zip
-```
-
-Elle doit contenir à sa racine une entrée nommée exactement :
-
-```text
-ods9.txt
-```
-
-Vérifiez dans Xcode que `ods9.zip` appartient bien à la cible de l’application. Le moteur est ensuite initialisé avec :
-
-```swift
-let finder = try WordFinder(archiveResource: "ods9")
-```
-
-`WordFinderStore` effectue cette opération une seule fois en arrière-plan au lancement. L’interface affiche successivement l’état de chargement, l’écran de recherche lorsque le moteur est prêt, ou un message permettant de réessayer en cas d’erreur.
-
-La casse des noms de fichiers doit être respectée, notamment sur un appareil iOS réel.
-
-## Dépendance ZIPFoundation
-
-Le projet utilise [ZIPFoundation](https://github.com/weichsel/ZIPFoundation) pour lire `ods9.txt` directement dans l’archive, sans créer de copie décompressée sur disque.
-
-Le package doit apparaître à la fois :
-
-- dans les dépendances Swift Package Manager du projet ;
-- dans les frameworks et bibliothèques liés à la cible `LettresEtScores`.
+La provenance, les critères complets, les statistiques, les empreintes et la commande de régénération sont détaillés dans [Corpus/README.md](Corpus/README.md).
 
 ## Tests
 
-Le projet comporte actuellement **35 tests unitaires et 3 tests d’interface**. Ils couvrent notamment :
+L’application comporte actuellement **35 tests unitaires et 3 tests d’interface**. Ils couvrent notamment :
 
 - la normalisation et la validation des tirages ;
 - la recherche, le score et l’utilisation des jokers ;
 - le classement déterministe des résultats ;
 - les contraintes par expressions régulières ;
-- le chargement de listes de mots depuis des ressources texte et ZIP ;
-- l’initialisation du moteur depuis une archive ;
+- le chargement de listes de mots depuis des ressources texte et DEFLATE ;
+- l’initialisation du moteur depuis une ressource compressée ;
 - le chargement asynchrone unique du corpus et la gestion des erreurs ;
 - le modèle de vue de recherche et l’exposition des deux classements ;
 - la consultation du Wiktionnaire ;
 - le parcours complet de recherche et d’ouverture d’une définition dans l’interface.
 
+Les tests sont volontairement répartis entre deux cibles et deux dossiers :
+
+- `LettresEtScoresTests` contient les tests unitaires rapides du moteur et des modèles de vue ;
+- `LettresEtScoresUITests` lance l’application et vérifie son comportement visible avec XCUITest.
+
+Cette séparation est la structure habituelle d’un projet Xcode : les tests d’interface ont besoin d’un processus distinct qui pilote l’application, contrairement aux tests unitaires.
+
 Les tests peuvent être lancés depuis le navigateur de tests de Xcode (`⌘6`) ou avec la commande `xcodebuild` adaptée au schéma et au simulateur utilisés.
+
+La chaîne de construction du corpus possède en plus **8 tests Python**, décrits dans [Corpus/README.md](Corpus/README.md#validation).
 
 ## Portage assisté par ChatGPT
 
@@ -133,8 +123,9 @@ Le portage de la version Python vers Swift et iOS a été réalisé avec l’aid
 
 Le code source de Lettres & Scores est distribué sous licence MIT. Consultez le fichier [LICENSE](LICENSE).
 
-Cette licence ne modifie pas les droits éventuellement applicables à `ods9.zip`, à `ods9.txt` ou aux autres contenus provenant de tiers. Consultez également la section [Corpus ODS9 : origine et avertissement](#corpus-ods9--origine-et-avertissement).
+Le lexique dérivé de Morphalou est distribué séparément sous LGPL-LR. Consultez [Corpus/README.md](Corpus/README.md) et [Corpus/LICENSE-Morphalou-LGPL-LR.txt](Corpus/LICENSE-Morphalou-LGPL-LR.txt).
 
 ## Auteur
 
 Bart Jourquin
+
