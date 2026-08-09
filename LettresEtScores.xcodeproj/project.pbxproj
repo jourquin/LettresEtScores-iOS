@@ -47,16 +47,6 @@
 		52EDF6B73025F58500C6FF1B /* WordListLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WordListLoader.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		520581B43026369A002E89C5 /* Exceptions for "LettresEtScoresTests" folder in "LettresEtScoresTests" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Untitled.swift,
-			);
-			target = 523EF5F73024FEF5007E9BD9 /* LettresEtScoresTests */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		523EF5ED3024FEF3007E9BD9 /* LettresEtScores */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -65,9 +55,6 @@
 		};
 		523EF5FB3024FEF5007E9BD9 /* LettresEtScoresTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				520581B43026369A002E89C5 /* Exceptions for "LettresEtScoresTests" folder in "LettresEtScoresTests" target */,
-			);
 			path = LettresEtScoresTests;
 			sourceTree = "<group>";
 		};
@@ -468,6 +455,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YBQFK5BBPA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -500,6 +488,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = YBQFK5BBPA;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
