@@ -58,10 +58,9 @@ struct WordListLoaderTests {
     }
     
     @Test
-    func loadsWordsFromZipResource() throws {
+    func loadsWordsFromCompressedResource() throws {
         let words = try WordListLoader.loadWords(
-            fromArchiveNamed: "test_words",
-            entryNamed: "test_words.txt",
+            fromCompressedResourceNamed: "test_words",
             bundle: testBundle
         )
 
@@ -71,10 +70,9 @@ struct WordListLoaderTests {
     }
 
     @Test
-    func buildsWordFinderFromZipResource() throws {
+    func buildsWordFinderFromCompressedResource() throws {
         let finder = try WordFinder(
-            archiveResource: "test_words",
-            entryName: "test_words.txt",
+            compressedResource: "test_words",
             bundle: testBundle
         )
 
@@ -88,11 +86,10 @@ struct WordListLoaderTests {
     }
 
     @Test
-    func rejectsMissingArchiveEntry() {
+    func rejectsMissingCompressedResource() {
         #expect(throws: WordListLoaderError.self) {
             try WordListLoader.loadWords(
-                fromArchiveNamed: "test_words",
-                entryNamed: "missing.txt",
+                fromCompressedResourceNamed: "missing_words",
                 bundle: testBundle
             )
         }

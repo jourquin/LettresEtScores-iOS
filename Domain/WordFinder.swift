@@ -86,6 +86,39 @@ struct WordFinder: Sendable {
         wordCount = seen.count
     }
 
+    /// Initialise le moteur depuis une ressource texte non compressée.
+    /// Cette variante reste utile pour les tests et les petits corpus.
+    init(
+        resource name: String,
+        withExtension fileExtension: String = "txt",
+        bundle: Bundle = .main
+    ) throws {
+        let words = try WordListLoader.loadWords(
+            named: name,
+            withExtension: fileExtension,
+            bundle: bundle
+        )
+
+        try self.init(words: words)
+    }
+
+    /// Initialise le moteur depuis une ressource DEFLATE brut.
+    /// Foundation effectue la décompression en mémoire avec l’algorithme
+    /// `.zlib`; aucun fichier temporaire ni package externe n’est utilisé.
+    init(
+        compressedResource name: String,
+        withExtension fileExtension: String = "deflate",
+        bundle: Bundle = .main
+    ) throws {
+        let words = try WordListLoader.loadWords(
+            fromCompressedResourceNamed: name,
+            withExtension: fileExtension,
+            bundle: bundle
+        )
+
+        try self.init(words: words)
+    }
+
     func search(
         _ rawRack: String,
         limit: Int = 10,

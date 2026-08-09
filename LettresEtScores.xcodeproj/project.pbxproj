@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		5205819F30261E71002E89C5 /* ZIPFoundation in Frameworks */ = {isa = PBXBuildFile; productRef = 5205819E30261E71002E89C5 /* ZIPFoundation */; };
 		520581A13026207D002E89C5 /* WordFinderStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 520581A030262078002E89C5 /* WordFinderStore.swift */; };
 		5272772F3025DF88001A7ABA /* RackNormalizer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5272772E3025D8A2001A7ABA /* RackNormalizer.swift */; };
 		52EDF6AA3025F0AD00C6FF1B /* Candidate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 52EDF6A93025F07700C6FF1B /* Candidate.swift */; };
@@ -75,7 +74,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5205819F30261E71002E89C5 /* ZIPFoundation in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -161,7 +159,6 @@
 			);
 			name = LettresEtScores;
 			packageProductDependencies = (
-				5205819E30261E71002E89C5 /* ZIPFoundation */,
 			);
 			productName = LettresEtScores;
 			productReference = 523EF5EB3024FEF3007E9BD9 /* LettresEtScores.app */;
@@ -246,7 +243,6 @@
 			mainGroup = 523EF5E23024FEF2007E9BD9;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				5205819A30261B7C002E89C5 /* XCRemoteSwiftPackageReference "ZIPFoundation" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 523EF5EC3024FEF3007E9BD9 /* Products */;
@@ -634,25 +630,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		5205819A30261B7C002E89C5 /* XCRemoteSwiftPackageReference "ZIPFoundation" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/weichsel/ZIPFoundation.git";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 0.9.20;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		5205819E30261E71002E89C5 /* ZIPFoundation */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 5205819A30261B7C002E89C5 /* XCRemoteSwiftPackageReference "ZIPFoundation" */;
-			productName = ZIPFoundation;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 523EF5E33024FEF2007E9BD9 /* Project object */;
 }
