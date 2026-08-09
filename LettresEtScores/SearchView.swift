@@ -133,13 +133,6 @@ struct SearchView: View {
                         + "\(viewModel.resultLimit)"
                 )
             }
-
-            Text(
-                "Ce nombre s’applique séparément aux mots "
-                    + "les plus longs et aux meilleurs scores."
-            )
-            .font(.caption)
-            .foregroundStyle(.secondary)
         }
     }
 
