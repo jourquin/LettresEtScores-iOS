@@ -12,6 +12,12 @@ enum WordFinderError: Error, Equatable {
     case invalidLimit
 }
 
+enum WordLookupError: Error, Equatable {
+    case unrecognizedCharacter(Character)
+    case tooShort
+    case tooLong
+}
+
 struct WordFinder: Sendable {
     private struct Entry: Sendable {
         let word: String
@@ -80,6 +86,12 @@ struct WordFinder: Sendable {
                     baseScore: baseScore
                 )
             )
+        }
+
+        for index in buckets.indices {
+            buckets[index].sort { lhs, rhs in
+                lhs.word < rhs.word
+            }
         }
 
         entriesByLength = buckets
@@ -217,6 +229,72 @@ struct WordFinder: Sendable {
             normalizedLetters: rack.letters,
             jokerCount: rack.jokerCount
         )
+    }
+
+    func checkWord(_ rawWord: String) throws -> WordCheckResult {
+        let word = try Self.normalizeLookupWord(rawWord)
+        let entries = entriesByLength[word.count]
+
+        var lowerBound = entries.startIndex
+        var upperBound = entries.endIndex
+
+        while lowerBound < upperBound {
+            let middle = lowerBound + (upperBound - lowerBound) / 2
+            let candidate = entries[middle].word
+
+            if candidate == word {
+                return WordCheckResult(
+                    word: word,
+                    exists: true
+                )
+            }
+
+            if candidate < word {
+                lowerBound = middle + 1
+            } else {
+                upperBound = middle
+            }
+        }
+
+        return WordCheckResult(
+            word: word,
+            exists: false
+        )
+    }
+
+    private static func normalizeLookupWord(
+        _ rawWord: String
+    ) throws -> String {
+        let expandedLigatures = rawWord
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .replacingOccurrences(of: "œ", with: "oe")
+            .replacingOccurrences(of: "Œ", with: "OE")
+            .replacingOccurrences(of: "æ", with: "ae")
+            .replacingOccurrences(of: "Æ", with: "AE")
+
+        let word = expandedLigatures
+            .folding(
+                options: [.diacriticInsensitive],
+                locale: Locale(identifier: "fr_FR")
+            )
+            .uppercased()
+
+        for character in word {
+            guard character >= "A" && character <= "Z" else {
+                throw WordLookupError
+                    .unrecognizedCharacter(character)
+            }
+        }
+
+        guard word.count >= RackNormalizer.minimumTileCount else {
+            throw WordLookupError.tooShort
+        }
+
+        guard word.count <= RackNormalizer.maximumTileCount else {
+            throw WordLookupError.tooLong
+        }
+
+        return word
     }
 
     private static func insert(

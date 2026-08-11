@@ -13,6 +13,20 @@ struct ConstraintHelpView: View {
     var body: some View {
         NavigationStack {
             List {
+                Section("Double rôle") {
+                    Text(
+                        "Lorsque le tirage contient des lettres, "
+                            + "ce champ filtre les mots réalisables "
+                            + "avec les contraintes ci-dessous."
+                    )
+
+                    Text(
+                        "Lorsque le tirage est vide, saisissez dans "
+                            + "ce champ le mot exact dont vous voulez "
+                            + "vérifier l’existence dans le corpus."
+                    )
+                }
+
                 Section("Principaux symboles") {
                     ConstraintHelpRow(
                         pattern: "^",

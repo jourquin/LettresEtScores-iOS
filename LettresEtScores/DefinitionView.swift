@@ -87,9 +87,10 @@ struct DefinitionView: View {
                     )
 
                 Text(
-                    "Extrait du Wiktionnaire. "
-                    + "Le contenu reste soumis "
-                    + "à sa licence."
+                    "Extrait du Wiktionnaire, disponible sous "
+                    + "licence CC BY-SA 4.0 sauf mention contraire. "
+                    + "La page complète donne accès aux auteurs "
+                    + "et à l’historique."
                 )
                 .font(.caption)
                 .foregroundStyle(.secondary)

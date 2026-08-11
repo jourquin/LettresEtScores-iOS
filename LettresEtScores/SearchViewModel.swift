@@ -14,6 +14,7 @@ final class SearchViewModel: ObservableObject {
         case idle
         case searching
         case results(SearchResult)
+        case wordCheck(WordCheckResult)
         case failed(String)
     }
     
@@ -41,9 +42,25 @@ final class SearchViewModel: ObservableObject {
     }
 
     var canSearch: Bool {
-        !rack.trimmingCharacters(
+        let hasRack = !rack.trimmingCharacters(
             in: .whitespacesAndNewlines
-        ).isEmpty && !isSearching
+        ).isEmpty
+
+        let hasConstraints = !constraints.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        ).isEmpty
+
+        return (hasRack || hasConstraints) && !isSearching
+    }
+
+    var isWordCheckMode: Bool {
+        rack.trimmingCharacters(
+            in: .whitespacesAndNewlines
+        ).isEmpty
+    }
+
+    var actionTitle: String {
+        isWordCheckMode ? "Vérifier" : "Rechercher"
     }
 
     func search() async {
@@ -55,6 +72,7 @@ final class SearchViewModel: ObservableObject {
         let rack = rack
         let constraints = constraints
         let resultLimit = resultLimit
+        let isWordCheckMode = isWordCheckMode
 
         state = .searching
 
@@ -62,6 +80,12 @@ final class SearchViewModel: ObservableObject {
             priority: .userInitiated
         ) {
             do {
+                if isWordCheckMode {
+                    return SearchOutcome.wordCheck(
+                        try finder.checkWord(constraints)
+                    )
+                }
+
                 let result = try finder.search(
                     rack,
                     limit: resultLimit,
@@ -79,6 +103,9 @@ final class SearchViewModel: ObservableObject {
         switch outcome {
         case .success(let result):
             state = .results(result)
+
+        case .wordCheck(let result):
+            state = .wordCheck(result)
 
         case .failure(let message):
             state = .failed(message)
@@ -114,6 +141,19 @@ final class SearchViewModel: ObservableObject {
             }
         }
 
+        if let lookupError = error as? WordLookupError {
+            switch lookupError {
+            case .unrecognizedCharacter(let character):
+                return "Le caractère « \(character) » n’est pas autorisé dans un mot."
+
+            case .tooShort:
+                return "Saisissez un mot d’au moins 2 lettres."
+
+            case .tooLong:
+                return "Le mot ne peut pas dépasser 15 lettres."
+            }
+        }
+
         if case let ConstraintError.invalidRegularExpression(pattern) =
             error
         {
@@ -125,6 +165,7 @@ final class SearchViewModel: ObservableObject {
 
     private enum SearchOutcome: Sendable {
         case success(SearchResult)
+        case wordCheck(WordCheckResult)
         case failure(String)
     }
 }

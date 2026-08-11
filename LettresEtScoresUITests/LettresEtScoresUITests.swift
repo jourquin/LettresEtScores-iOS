@@ -104,6 +104,86 @@ final class LettresEtScoresUITests: XCTestCase {
     }
 
     @MainActor
+    func testChecksAWordWithAnEmptyRack() throws {
+        let app = XCUIApplication()
+
+        app.launchArguments.append("--ui-testing")
+        app.launch()
+
+        let constraintsField =
+            app.textFields["constraintsTextField"]
+
+        XCTAssertTrue(
+            constraintsField.waitForExistence(timeout: 5)
+        )
+
+        constraintsField.tap()
+        constraintsField.typeText("CHAT")
+
+        if app.keyboards.firstMatch.exists {
+            constraintsField.typeText("\n")
+        }
+
+        let form = scrollContainer(in: app)
+        let checkButton = app.buttons["searchButton"]
+
+        XCTAssertTrue(
+            reveal(checkButton, byScrolling: form)
+        )
+        XCTAssertEqual(checkButton.label, "Vérifier")
+
+        checkButton.tap()
+
+        let result = app.staticTexts["wordCheckResult"]
+
+        XCTAssertTrue(
+            reveal(
+                result,
+                byScrolling: form,
+                requiresHittable: false
+            ),
+            "Le résultat de la vérification reste introuvable."
+        )
+        XCTAssertEqual(
+            result.label,
+            "« CHAT » figure dans le corpus."
+        )
+    }
+
+    @MainActor
+    func testOpensCorpusLicense() throws {
+        let app = XCUIApplication()
+
+        app.launchArguments.append("--ui-testing")
+        app.launch()
+
+        let aboutButton = app.buttons["aboutButton"]
+
+        XCTAssertTrue(
+            aboutButton.waitForExistence(timeout: 5)
+        )
+        aboutButton.tap()
+
+        XCTAssertTrue(
+            app.navigationBars["À propos / Licences"]
+                .waitForExistence(timeout: 2)
+        )
+
+        let licenseLink = app.buttons["corpusLicenseLink"]
+        let list = scrollContainer(in: app)
+
+        XCTAssertTrue(
+            reveal(licenseLink, byScrolling: list)
+        )
+        licenseLink.tap()
+
+        XCTAssertTrue(
+            app.navigationBars["Licence LGPL-LR"]
+                .waitForExistence(timeout: 2)
+        )
+    }
+
+    @MainActor
     func testLaunchPerformance() throws {
         // This measures how long it takes to launch your application.
         measure(metrics: [XCTApplicationLaunchMetric()]) {
@@ -135,16 +215,24 @@ final class LettresEtScoresUITests: XCTestCase {
     private func reveal(
         _ element: XCUIElement,
         byScrolling container: XCUIElement,
+        requiresHittable: Bool = true,
         maximumSwipes: Int = 6
     ) -> Bool {
         for _ in 0..<maximumSwipes {
-            if element.exists && element.isHittable {
+            let exists = element.waitForExistence(
+                timeout: 1
+            )
+
+            if exists
+                && (!requiresHittable || element.isHittable)
+            {
                 return true
             }
 
             container.swipeUp()
         }
 
-        return element.exists && element.isHittable
+        return element.exists
+            && (!requiresHittable || element.isHittable)
     }
 }

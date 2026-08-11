@@ -77,4 +77,33 @@ struct WordFinderTests {
 
         #expect(finder.wordCount == 1)
     }
+
+    @Test
+    func checksWhetherAnExactWordExists() throws {
+        let finder = try WordFinder(
+            words: ["CHAT", "COEUR", "TAXI"]
+        )
+
+        #expect(
+            try finder.checkWord("chat") ==
+                WordCheckResult(word: "CHAT", exists: true)
+        )
+        #expect(
+            try finder.checkWord("cœur") ==
+                WordCheckResult(word: "COEUR", exists: true)
+        )
+        #expect(
+            try finder.checkWord("CHIEN") ==
+                WordCheckResult(word: "CHIEN", exists: false)
+        )
+    }
+
+    @Test
+    func rejectsPunctuationWhenCheckingAWord() throws {
+        let finder = try WordFinder(words: ["CHAT"])
+
+        #expect(throws: WordLookupError.self) {
+            try finder.checkWord("CHAT!")
+        }
+    }
 }

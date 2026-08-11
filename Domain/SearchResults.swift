@@ -11,3 +11,8 @@ struct SearchResult: Equatable, Sendable {
     let normalizedLetters: String
     let jokerCount: Int
 }
+
+struct WordCheckResult: Equatable, Sendable {
+    let word: String
+    let exists: Bool
+}

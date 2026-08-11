@@ -138,4 +138,49 @@ struct SearchViewModelTests {
         #expect(result.longest.count == 2)
         #expect(result.highestScoring.count == 2)
     }
+
+    @Test
+    func checksAWordWhenRackIsEmpty() async throws {
+        let finder = try WordFinder(
+            words: ["CHAT", "TAXI"]
+        )
+
+        let viewModel = SearchViewModel(
+            finder: finder
+        )
+
+        viewModel.constraints = "chat"
+
+        #expect(viewModel.canSearch)
+        #expect(viewModel.actionTitle == "Vérifier")
+
+        await viewModel.search()
+
+        #expect(
+            viewModel.state == .wordCheck(
+                WordCheckResult(
+                    word: "CHAT",
+                    exists: true
+                )
+            )
+        )
+    }
+
+    @Test
+    func reportsAnUnknownWord() async throws {
+        let finder = try WordFinder(words: ["CHAT"])
+        let viewModel = SearchViewModel(finder: finder)
+
+        viewModel.constraints = "CHIEN"
+        await viewModel.search()
+
+        #expect(
+            viewModel.state == .wordCheck(
+                WordCheckResult(
+                    word: "CHIEN",
+                    exists: false
+                )
+            )
+        )
+    }
 }

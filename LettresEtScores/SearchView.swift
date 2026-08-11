@@ -12,6 +12,7 @@ struct SearchView: View {
 
     @State private var ranking: Ranking = .longest
     @State private var isShowingConstraintHelp = false
+    @State private var isShowingAbout = false
     @State private var selectedDefinition: DefinitionSelection?
 
     private let wordCount: Int
@@ -37,13 +38,29 @@ struct SearchView: View {
             Form {
                 inputSection
                 constraintsSection
-                resultLimitSection
+
+                if !viewModel.isWordCheckMode {
+                    resultLimitSection
+                }
+
                 searchSection
                 stateSections
             }
             .scrollDismissesKeyboard(.immediately)
             .navigationTitle("Lettres & Scores")
             .toolbar {
+                ToolbarItem(
+                    placement: .topBarLeading
+                ) {
+                    Button {
+                        isShowingAbout = true
+                    } label: {
+                        Image(systemName: "info.circle")
+                    }
+                    .accessibilityLabel("À propos et licences")
+                    .accessibilityIdentifier("aboutButton")
+                }
+
                 ToolbarItem(
                     placement: .topBarTrailing
                 ) {
@@ -65,6 +82,9 @@ struct SearchView: View {
         ) {
             ConstraintHelpView()
         }
+        .sheet(isPresented: $isShowingAbout) {
+            AboutLicensesView(wordCount: wordCount)
+        }
         .sheet(item: $selectedDefinition) { selection in
             DefinitionView(
                 word: selection.word,
@@ -85,7 +105,8 @@ struct SearchView: View {
 
             Text(
                 "De 2 à 15 tuiles. Utilisez ? ou * "
-                    + "pour un joker."
+                    + "pour un joker. Laissez vide pour "
+                    + "vérifier un mot."
             )
             .font(.caption)
             .foregroundStyle(.secondary)
@@ -93,7 +114,7 @@ struct SearchView: View {
     }
 
     private var constraintsSection: some View {
-        Section("Contraintes facultatives") {
+        Section("Contraintes") {
             HStack {
                 TextField(
                     "Ex. ^J..A$;R",
@@ -101,6 +122,7 @@ struct SearchView: View {
                 )
                 .textInputAutocapitalization(.characters)
                 .autocorrectionDisabled()
+                .accessibilityIdentifier("constraintsTextField")
 
                 Button {
                     isShowingConstraintHelp = true
@@ -113,10 +135,7 @@ struct SearchView: View {
                 )
             }
 
-            Text(
-                "Séparez plusieurs expressions "
-                    + "régulières par un point-virgule."
-            )
+            Text("Contrainte(s) ou mot à vérifier si tirage vide")
             .font(.caption)
             .foregroundStyle(.secondary)
         }
@@ -154,7 +173,7 @@ struct SearchView: View {
                     Text(
                         viewModel.isSearching
                             ? "Recherche…"
-                            : "Rechercher"
+                            : viewModel.actionTitle
                     )
 
                     Spacer()
@@ -191,6 +210,36 @@ struct SearchView: View {
 
         case .results(let result):
             resultSections(result)
+
+        case .wordCheck(let result):
+            wordCheckSection(result)
+        }
+    }
+
+    private func wordCheckSection(
+        _ result: WordCheckResult
+    ) -> some View {
+        Section("Vérification") {
+            Label(
+                result.exists
+                    ? "« \(result.word) » figure dans le corpus."
+                    : "« \(result.word) » ne figure pas dans le corpus.",
+                systemImage: result.exists
+                    ? "checkmark.circle.fill"
+                    : "xmark.circle.fill"
+            )
+            .foregroundStyle(
+                result.exists ? Color.green : Color.orange
+            )
+            .accessibilityIdentifier("wordCheckResult")
+
+            Text(
+                "Le corpus est dérivé de Morphalou 3.1. "
+                    + "Ce résultat ne constitue pas une validation "
+                    + "officielle pour une compétition."
+            )
+            .font(.caption)
+            .foregroundStyle(.secondary)
         }
     }
 
