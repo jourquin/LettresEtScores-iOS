@@ -233,14 +233,37 @@ struct SearchView: View {
             )
             .accessibilityIdentifier("wordCheckResult")
 
-            Text(
-                "Le corpus est dérivé de Morphalou 3.1. "
-                    + "Ce résultat ne constitue pas une validation "
-                    + "officielle pour une compétition."
+            Button {
+                selectedDefinition = DefinitionSelection(
+                    word: result.word
+                )
+            } label: {
+                Label(
+                    "Voir la définition",
+                    systemImage: "book"
+                )
+            }
+            .accessibilityIdentifier(
+                "wordCheckDefinitionButton"
             )
-            .font(.caption)
-            .foregroundStyle(.secondary)
+            .disabled(!result.exists)
+            .foregroundStyle(
+                result.exists ? Color.accentColor : Color.secondary
+            )
+            .opacity(result.exists ? 1 : 0.45)
+
+            corpusNotice
         }
+    }
+
+    private var corpusNotice: some View {
+        Text(
+            "Le corpus est dérivé de Morphalou 3.1. "
+                + "Ce résultat ne constitue pas une validation "
+                + "officielle pour une compétition."
+        )
+        .font(.caption)
+        .foregroundStyle(.secondary)
     }
 
     @ViewBuilder

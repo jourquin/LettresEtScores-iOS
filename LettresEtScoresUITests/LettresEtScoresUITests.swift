@@ -148,6 +148,132 @@ final class LettresEtScoresUITests: XCTestCase {
             result.label,
             "« CHAT » figure dans le corpus."
         )
+
+        let definitionButton =
+            app.buttons["wordCheckDefinitionButton"]
+
+        XCTAssertTrue(
+            reveal(
+                definitionButton,
+                byScrolling: form
+            ),
+            "Le bouton de définition reste introuvable."
+        )
+        XCTAssertTrue(definitionButton.isEnabled)
+        definitionButton.tap()
+
+        XCTAssertTrue(
+            app.navigationBars["CHAT"]
+                .waitForExistence(timeout: 5)
+        )
+
+        let definition =
+            app.staticTexts["definitionExtract"]
+
+        XCTAssertTrue(
+            definition.waitForExistence(timeout: 5)
+        )
+        XCTAssertEqual(
+            definition.label,
+            "Définition simulée pour CHAT."
+        )
+    }
+
+    @MainActor
+    func testDisablesDefinitionForMissingWord() throws {
+        let app = XCUIApplication()
+
+        app.launchArguments.append("--ui-testing")
+        app.launch()
+
+        let constraintsField =
+            app.textFields["constraintsTextField"]
+
+        XCTAssertTrue(
+            constraintsField.waitForExistence(timeout: 5)
+        )
+
+        constraintsField.tap()
+        constraintsField.typeText("CHAT")
+
+        if app.keyboards.firstMatch.exists {
+            constraintsField.typeText("\n")
+        }
+
+        let form = scrollContainer(in: app)
+        let checkButton = app.buttons["searchButton"]
+
+        XCTAssertTrue(
+            reveal(checkButton, byScrolling: form)
+        )
+        checkButton.tap()
+
+        let result = app.staticTexts["wordCheckResult"]
+        let definitionButton =
+            app.buttons["wordCheckDefinitionButton"]
+
+        XCTAssertTrue(
+            reveal(
+                result,
+                byScrolling: form,
+                requiresHittable: false
+            ),
+            "Le résultat de la vérification reste introuvable."
+        )
+        XCTAssertEqual(
+            result.label,
+            "« CHAT » figure dans le corpus."
+        )
+        XCTAssertTrue(
+            reveal(definitionButton, byScrolling: form),
+            "Le bouton doit être affiché pour un mot présent."
+        )
+
+        for _ in 0..<6 where !constraintsField.isHittable {
+            form.swipeDown()
+        }
+
+        XCTAssertTrue(
+            constraintsField.isHittable,
+            "Le champ Contraintes reste inaccessible."
+        )
+        replaceText(in: constraintsField, with: "CHIEN")
+
+        if app.keyboards.firstMatch.exists {
+            constraintsField.typeText("\n")
+        }
+
+        XCTAssertTrue(
+            reveal(checkButton, byScrolling: form)
+        )
+        checkButton.tap()
+
+        XCTAssertTrue(
+            reveal(
+                result,
+                byScrolling: form,
+                requiresHittable: false
+            ),
+            "Le nouveau résultat reste introuvable."
+        )
+        XCTAssertEqual(
+            result.label,
+            "« CHIEN » ne figure pas dans le corpus."
+        )
+
+        XCTAssertTrue(
+            reveal(definitionButton, byScrolling: form),
+            "Le bouton désactivé reste introuvable."
+        )
+        let disabled = XCTNSPredicateExpectation(
+            predicate: NSPredicate(format: "enabled == false"),
+            object: definitionButton
+        )
+        XCTAssertEqual(
+            XCTWaiter.wait(for: [disabled], timeout: 2),
+            .completed,
+            "Le bouton doit être désactivé pour un mot absent."
+        )
     }
 
     @MainActor
@@ -234,5 +360,22 @@ final class LettresEtScoresUITests: XCTestCase {
 
         return element.exists
             && (!requiresHittable || element.isHittable)
+    }
+
+    @MainActor
+    private func replaceText(
+        in field: XCUIElement,
+        with replacement: String
+    ) {
+        field.tap()
+
+        let currentText = field.value as? String ?? ""
+        field.typeText(
+            String(
+                repeating: XCUIKeyboardKey.delete.rawValue,
+                count: currentText.count
+            )
+        )
+        field.typeText(replacement)
     }
 }
