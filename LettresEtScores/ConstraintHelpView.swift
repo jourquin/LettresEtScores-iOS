@@ -23,7 +23,7 @@ struct ConstraintHelpView: View {
                     Text(
                         "Lorsque le tirage est vide, saisissez dans "
                             + "ce champ le mot exact dont vous voulez "
-                            + "vérifier l’existence dans le corpus."
+                            + "vérifier l’existence dans la liste ODS9."
                     )
                 }
 

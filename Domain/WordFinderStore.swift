@@ -26,7 +26,7 @@ final class WordFinderStore: ObservableObject {
     init(
         loader: @escaping Loader = {
             try WordFinder(
-                compressedResource: "lexique-francais"
+                compressedResource: "ods9"
             )
         }
     ) {

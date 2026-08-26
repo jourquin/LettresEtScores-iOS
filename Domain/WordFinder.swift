@@ -99,7 +99,7 @@ struct WordFinder: Sendable {
     }
 
     /// Initialise le moteur depuis une ressource texte non compressée.
-    /// Cette variante reste utile pour les tests et les petits corpus.
+    /// Cette variante reste utile pour les tests et les petites listes.
     init(
         resource name: String,
         withExtension fileExtension: String = "txt",

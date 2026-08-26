@@ -49,11 +49,11 @@ struct ContentView: View {
         VStack(spacing: 16) {
             ProgressView()
 
-            Text("Chargement du dictionnaire…")
+            Text("Chargement de la liste ODS9…")
                 .font(.headline)
 
             Text(
-                "Le corpus est décompressé et indexé "
+                "La liste ODS9 est décompressée et indexée "
                 + "lors du lancement."
             )
             .font(.subheadline)

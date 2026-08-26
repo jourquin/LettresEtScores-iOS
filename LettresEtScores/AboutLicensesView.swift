@@ -13,6 +13,8 @@ struct AboutLicensesView: View {
 
     let wordCount: Int
 
+    private let archiveWordCount = 416_349
+
     var body: some View {
         NavigationStack {
             List {
@@ -28,52 +30,59 @@ struct AboutLicensesView: View {
                     )
                 }
 
-                Section("Lexique français") {
+                Section("Liste ODS9") {
                     Text(
-                        "Le corpus embarqué contient "
-                            + "\(wordCount.formatted()) formes de 2 à "
-                            + "15 lettres. Il est dérivé de Morphalou "
-                            + "3.1, conçu par Marie Tonnelier et "
-                            + "maintenu par l’ATILF (CNRS et "
-                            + "Université de Lorraine)."
+                        "La ressource embarquée contient "
+                            + "\(archiveWordCount.formatted()) formes "
+                            + "de 2 à 21 lettres. Le moteur en indexe "
+                            + "\(wordCount.formatted()), de 2 à 15 "
+                            + "lettres."
+                    )
+                    .accessibilityIdentifier("ods9Summary")
+
+                    Text(
+                        "La ressource est reconstruite à partir du "
+                            + "fichier words.js publié par le dépôt "
+                            + "tiers Thecoolsim/ODS9. Les 9 221 formes "
+                            + "de 16 à 21 lettres restent dans la "
+                            + "ressource, mais ne sont pas chargées par "
+                            + "le moteur."
                     )
 
                     Text(
-                        "Les formes ont été filtrées, normalisées, "
-                            + "dédoublonnées et triées le 9 août 2026. "
-                            + "Ce lexique n’est ni une reproduction de "
-                            + "l’ODS ni une référence officielle pour "
-                            + "les compétitions."
+                        "Cette source n’est pas une publication "
+                            + "officielle de Larousse ou de la FISF. "
+                            + "La présence ou l’absence d’un mot ne "
+                            + "constitue donc pas une validation "
+                            + "officielle pour une compétition."
                     )
                     .foregroundStyle(.secondary)
 
                     externalLink(
-                        "Source Morphalou 3.1",
-                        url: "https://hdl.handle.net/11403/morphalou/v3.1"
+                        "Source ODS9 tierce",
+                        url: "https://github.com/Thecoolsim/ODS9"
                     )
 
                     externalLink(
-                        "Code source et corpus modifiable",
+                        "Code source de l’application",
                         url: "https://github.com/jourquin/LettresEtScores-iOS"
                     )
                 }
 
                 Section("Licences") {
-                    NavigationLink("Notice du corpus") {
-                        LegalDocumentView(
-                            title: "Notice du corpus",
-                            resource: "NOTICE"
-                        )
-                    }
-                    .accessibilityIdentifier("corpusNoticeLink")
+                    Text(
+                        "Le code de Lettres & Scores est distribué "
+                            + "sous licence MIT."
+                    )
 
-                    NavigationLink("Licence LGPL-LR") {
-                        LegalDocumentView(
-                            title: "Licence LGPL-LR",
-                            resource: "LICENSE-LGPL-LR"
-                        )
-                    }
-                    .accessibilityIdentifier("corpusLicenseLink")
+                    Text(
+                        "Le dépôt source tiers possède sa propre "
+                            + "licence, mais aucune licence explicite "
+                            + "propre aux données lexicales ODS9 n’a "
+                            + "été identifiée. Vérifiez vos droits "
+                            + "avant toute redistribution."
+                    )
+                    .foregroundStyle(.secondary)
                 }
 
                 Section("Définitions") {
@@ -82,8 +91,8 @@ struct AboutLicensesView: View {
                             + "à la demande sur le Wiktionnaire et "
                             + "restent disponibles sous licence "
                             + "CC BY-SA 4.0, sauf mention contraire. "
-                            + "Ils ne sont pas inclus dans le corpus "
-                            + "local."
+                            + "Ils ne sont pas inclus dans la liste "
+                            + "locale."
                     )
 
                     externalLink(
@@ -137,41 +146,6 @@ struct AboutLicensesView: View {
     }
 }
 
-private struct LegalDocumentView: View {
-    let title: String
-    let resource: String
-
-    var body: some View {
-        ScrollView {
-            Text(documentText)
-                .font(.footnote)
-                .textSelection(.enabled)
-                .frame(
-                    maxWidth: .infinity,
-                    alignment: .leading
-                )
-                .padding()
-        }
-        .navigationTitle(title)
-        .navigationBarTitleDisplayMode(.inline)
-    }
-
-    private var documentText: String {
-        guard let url = Bundle.main.url(
-            forResource: resource,
-            withExtension: "txt"
-        ),
-        let text = try? String(
-            contentsOf: url,
-            encoding: .utf8
-        ) else {
-            return "Le document n’a pas pu être chargé."
-        }
-
-        return text
-    }
-}
-
 #Preview {
-    AboutLicensesView(wordCount: 402_448)
+    AboutLicensesView(wordCount: 407_128)
 }

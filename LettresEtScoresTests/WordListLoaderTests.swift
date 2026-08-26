@@ -94,4 +94,15 @@ struct WordListLoaderTests {
             )
         }
     }
+
+    @Test
+    func embeddedODS9HasExpectedIndex() throws {
+        let finder = try WordFinder(
+            compressedResource: "ods9",
+            bundle: .main
+        )
+
+        #expect(finder.wordCount == 407_128)
+        #expect(try finder.checkWord("KOI").exists)
+    }
 }

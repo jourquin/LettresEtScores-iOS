@@ -222,8 +222,8 @@ struct SearchView: View {
         Section("Vérification") {
             Label(
                 result.exists
-                    ? "« \(result.word) » figure dans le corpus."
-                    : "« \(result.word) » ne figure pas dans le corpus.",
+                    ? "« \(result.word) » figure dans la liste ODS9."
+                    : "« \(result.word) » ne figure pas dans la liste ODS9.",
                 systemImage: result.exists
                     ? "checkmark.circle.fill"
                     : "xmark.circle.fill"
@@ -252,15 +252,15 @@ struct SearchView: View {
             )
             .opacity(result.exists ? 1 : 0.45)
 
-            corpusNotice
+            ods9Notice
         }
     }
 
-    private var corpusNotice: some View {
+    private var ods9Notice: some View {
         Text(
-            "Le corpus est dérivé de Morphalou 3.1. "
-                + "Ce résultat ne constitue pas une validation "
-                + "officielle pour une compétition."
+            "Ce résultat indique uniquement la présence dans la liste "
+                + "ODS9 tierce embarquée ; il ne constitue pas une "
+                + "validation officielle pour une compétition."
         )
         .font(.caption)
         .foregroundStyle(.secondary)

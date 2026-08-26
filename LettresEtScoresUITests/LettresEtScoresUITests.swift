@@ -146,7 +146,7 @@ final class LettresEtScoresUITests: XCTestCase {
         )
         XCTAssertEqual(
             result.label,
-            "« CHAT » figure dans le corpus."
+            "« CHAT » figure dans la liste ODS9."
         )
 
         let definitionButton =
@@ -222,7 +222,7 @@ final class LettresEtScoresUITests: XCTestCase {
         )
         XCTAssertEqual(
             result.label,
-            "« CHAT » figure dans le corpus."
+            "« CHAT » figure dans la liste ODS9."
         )
         XCTAssertTrue(
             reveal(definitionButton, byScrolling: form),
@@ -258,7 +258,7 @@ final class LettresEtScoresUITests: XCTestCase {
         )
         XCTAssertEqual(
             result.label,
-            "« CHIEN » ne figure pas dans le corpus."
+            "« CHIEN » ne figure pas dans la liste ODS9."
         )
 
         XCTAssertTrue(
@@ -277,7 +277,7 @@ final class LettresEtScoresUITests: XCTestCase {
     }
 
     @MainActor
-    func testOpensCorpusLicense() throws {
+    func testShowsODS9Information() throws {
         let app = XCUIApplication()
 
         app.launchArguments.append("--ui-testing")
@@ -295,17 +295,25 @@ final class LettresEtScoresUITests: XCTestCase {
                 .waitForExistence(timeout: 2)
         )
 
-        let licenseLink = app.buttons["corpusLicenseLink"]
         let list = scrollContainer(in: app)
+        let summary = app.staticTexts["ods9Summary"]
 
         XCTAssertTrue(
-            reveal(licenseLink, byScrolling: list)
+            reveal(
+                summary,
+                byScrolling: list,
+                requiresHittable: false
+            ),
+            "Le résumé ODS9 reste introuvable."
         )
-        licenseLink.tap()
 
+        // En mode --ui-testing, le moteur contient seulement les trois mots
+        // de la fixture. Le total indexé réel (407 128) est vérifié par
+        // WordListLoaderTests.embeddedODS9HasExpectedIndex.
         XCTAssertTrue(
-            app.navigationBars["Licence LGPL-LR"]
-                .waitForExistence(timeout: 2)
+            summary.label.contains("416"),
+            "Le résumé ODS9 devrait indiquer les 416 349 formes "
+                + "de la ressource : \(summary.label)"
         )
     }
 
