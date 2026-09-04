@@ -1,0 +1,28 @@
+# Configuration locale — renew-ios-wifi.sh v3.1.1
+#
+# Copier vers :
+#   ~/.config/lettres-et-scores/renew-ios.conf
+#
+# Ce fichier reste local et ne doit pas être poussé dans Git.
+
+# Identifiant CoreDevice utilisé par devicectl.
+DEVICE_ID="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
+
+# UDID de destination utilisé par xcodebuild.
+XCODE_DEVICE_UDID="XXXXXXXX-XXXXXXXXXXXXXXXX"
+
+# Empreinte SHA-1 du certificat Apple Development qui doit rester utilisé.
+# Pour l'obtenir :
+#   security find-identity -v -p codesigning
+#
+# Exemple (à remplacer par votre identité valide) :
+EXPECTED_SIGNING_CERT_SHA1="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+
+# Valeurs optionnelles :
+# PROJECT="$HOME/git/LettresEtScores-iOS/LettresEtScores.xcodeproj"
+# SCHEME="LettresEtScores"
+# CONFIGURATION="Debug"
+# APP_NAME="LettresEtScores.app"
+# RENEW_WINDOW_HOURS=12
+# MIN_FRESH_VALIDITY_HOURS=120
+# RETRY_AFTER_SECONDS=1800

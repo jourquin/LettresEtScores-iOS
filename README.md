@@ -54,6 +54,33 @@ profil expire après sept jours. Apple détaille les possibilités dans
 et la procédure appareil dans
 [`Enabling Developer Mode`](https://developer.apple.com/documentation/xcode/enabling-developer-mode-on-a-device).
 
+### Renouvellement expérimental d'une installation Personal Team
+
+Le dépôt contient également un script exploratoire permettant de tenter le
+renouvellement et la réinstallation de l'application sur un iPhone appairé,
+sans ouvrir manuellement Xcode à chaque expiration du profil. Il utilise
+`xcodebuild`, `devicectl` et, en option, un `LaunchAgent` macOS pour automatiser
+les tentatives de renouvellement par Wi-Fi.
+
+Cette méthode est **expérimentale**. Elle a été mise au point à partir de tests
+sur une configuration particulière, mais sa robustesse n'a pas été démontrée
+sur d'autres versions de macOS, Xcode ou iOS, ni sur d'autres comptes et
+appareils. Apple peut également modifier le comportement de la signature, du
+provisioning, des Developer Disk Images ou des outils en ligne de commande.
+Le script ne doit donc pas être considéré comme un mécanisme officiel ou
+garanti de renouvellement.
+
+Il inclut plusieurs contrôles de sécurité, notamment la vérification du
+certificat Apple Development réellement utilisé pour signer l'application,
+mais son utilisation reste à la charge de l'utilisateur. Une intervention
+manuelle peut redevenir nécessaire après une mise à jour d'iOS ou de Xcode, un
+changement ou une révocation de certificat, ou une nouvelle demande
+d'approbation du développeur sur l'iPhone.
+
+La procédure complète, les prérequis, le diagnostic et la mise en place de
+l'automatisation sont décrits dans
+[`RENEW_IOS_WIFI.md`](RENEW_IOS_WIFI.md).
+
 ## Utilisation
 
 1. Saisissez de 2 à 15 lettres dans **Tirage**.
@@ -97,7 +124,7 @@ redistributeur de vérifier les droits applicables à la liste.
 
 ## Reconstruction de la ressource
 
-Le répertoire `Tools` contient uniquement `build_ods9.py`. Le script télécharge
+Le répertoire `Tools` contient notamment `build_ods9.py`. Ce script télécharge
 `words.js` à une révision Git figée, contrôle son SHA-256, décode le contenu
 gzip/Base64, valide les 416 349 formes et crée le flux DEFLATE brut attendu par
 Foundation.
