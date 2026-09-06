@@ -1,56 +1,65 @@
-# Renouvellement automatique du certificat de Lettres & Scores sur iPhone par Wi‑Fi
+# Renouvellement automatique de Lettres & Scores sur iPhone par Wi‑Fi
 
-Ce document décrit la procédure complète pour reconstruire, re-signer et réinstaller automatiquement **Lettres & Scores** sur un iPhone lorsqu'il est installé avec un compte développeur Apple personnel (*Personal Team*).
+Ce document décrit une méthode **expérimentale** pour reconstruire, re-signer et réinstaller automatiquement **Lettres & Scores** sur un iPhone lorsqu'il est installé avec un compte développeur Apple personnel (*Personal Team*).
 
-L'objectif est d'éviter d'ouvrir Xcode et de relancer manuellement l'application chaque semaine.
+L'objectif est d'éviter d'ouvrir Xcode et de relancer manuellement l'application à chaque expiration du profil de provisioning.
 
-La solution repose sur :
+La solution utilise :
 
 - `xcodebuild` pour compiler et signer l'application ;
-- `devicectl` pour vérifier l'iPhone et installer l'application ;
+- `devicectl` pour détecter l'iPhone, vérifier les services de développement et installer l'application ;
 - un contrôle du **Developer Disk Image (DDI)** ;
-- un contrôle du certificat réellement utilisé pour signer l'application ;
-- un **LaunchAgent macOS** pour automatiser les tentatives de renouvellement ;
+- un contrôle de l'identité Apple Development réellement utilisée pour signer l'application ;
+- un **LaunchAgent macOS** pour effectuer automatiquement les tentatives de renouvellement ;
 - une connexion Wi‑Fi entre le Mac et l'iPhone après la préparation initiale.
 
-> Avec une *Personal Team*, le profil de provisioning reste de courte durée (7 jours). Cette procédure automatise son renouvellement autant que possible, mais ne contourne pas les limitations imposées par Apple.
+> [!WARNING]
+> Cette méthode est exploratoire. Elle a été développée et testée sur une configuration particulière, mais sa robustesse n'a pas été démontrée sur l'ensemble des versions de macOS, Xcode et iOS ni sur tous les types de comptes et d'appareils. Apple peut modifier le fonctionnement du provisioning, de la signature ou des outils en ligne de commande. Cette procédure ne constitue donc pas un mécanisme officiel ou garanti de renouvellement.
+
+Avec une *Personal Team*, la durée de validité du profil de provisioning est limitée à 7 jours. Cette procédure automatise son renouvellement autant que possible mais ne contourne aucune limitation imposée par Apple.
 
 
-## 1. Fichiers utilisés
+## 1. Fichiers du dépôt
 
-Le dépôt contient les fichiers suivants :
+La procédure repose sur deux scripts :
 
 ```text
 LettresEtScores-iOS/
 ├── RENEW_IOS_WIFI.md
 └── Tools/
-    ├── renew-ios-wifi.sh
-    ├── renew-ios.conf.example
-    └── be.bartjourquin.lettresetcores.renew-ios.plist.example
+    ├── install-renew-ios.sh
+    └── renew-ios-wifi.sh
 ```
 
-Le fichier de configuration réel restee **hors du dépôt** :
+`install-renew-ios.sh` installe et configure la procédure.
+
+`renew-ios-wifi.sh` effectue ensuite les renouvellements.
+
+Les fichiers de configuration sont générés automatiquement par l'installateur aux emplacements suivants :
 
 ```text
 ~/.config/lettres-et-scores/renew-ios.conf
+~/Library/LaunchAgents/be.bartjourquin.lettresetcores.renew-ios.plist
 ```
 
-Il contient notamment les identifiants propres à l'iPhone et l'empreinte du certificat de signature.
+Le fichier d'état utilisé par le script est stocké dans :
+
+```text
+~/.local/state/lettres-et-scores/renew-ios.state
+```
 
 
-# 2. Prérequis
+## 2. Prérequis
 
 Il faut disposer de :
 
 - macOS ;
 - Xcode installé ;
-- le compte Apple configuré dans Xcode ;
-- le projet `LettresEtScores.xcodeproj` ;
-- le scheme `LettresEtScores` ;
-- **Automatic Signing** activé ;
+- un compte Apple configuré dans Xcode ;
+- **Automatic Signing** activé pour la cible `LettresEtScores` ;
 - le mode développeur activé sur l'iPhone ;
 - l'iPhone appairé avec le Mac ;
-- le support de la version d'iOS de l'iPhone installé dans Xcode.
+- une version de Xcode compatible avec la version d'iOS installée sur l'iPhone.
 
 Vérifier Xcode :
 
@@ -71,60 +80,203 @@ sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
 ```
 
 
-# 3. Préparation initiale de l'iPhone
 
-La toute première préparation doit idéalement être effectuée avec l'iPhone **branché physiquement au Mac**.
+## 3. Préparation initiale de l'iPhone
+
+La première préparation doit idéalement être effectuée avec l'iPhone **branché physiquement au Mac**.
 
 1. Brancher l'iPhone au Mac.
 2. Déverrouiller l'iPhone.
 3. Accepter la relation de confiance si elle est demandée.
 4. Ouvrir Xcode.
-5. Aller dans :
-
-```text
-Window → Devices and Simulators
-```
-
-ou, selon la version de Xcode :
-
-```text
-Window → Device Hub
-```
-
+5. Ouvrir **Window → Devices and Simulators** ou **Device Hub**, selon la version de Xcode.
 6. Sélectionner l'iPhone.
 7. Attendre que Xcode termine la préparation de l'appareil.
 8. Vérifier que **Developer Mode** est activé sur l'iPhone.
-9. Sélectionner l'iPhone comme destination d'exécution du projet.
-10. Lancer **Lettres & Scores** une fois depuis Xcode.
+9. Sélectionner l'iPhone comme destination d'exécution de `LettresEtScores`.
+10. Lancer l'application une fois avec Xcode.
 
 Une fois cette préparation terminée, le câble peut normalement être débranché.
 
-Les renouvellements suivants peuvent alors être effectués par Wi‑Fi.
+Les renouvellements suivants peuvent alors être réalisés par Wi‑Fi.
 
 
-# 4. Vérifier que l'iPhone est joignable par Wi‑Fi
 
-Débrancher le câble puis exécuter :
+# Installation
 
-```bash
-xcrun devicectl list devices
-```
+## 4. Lancer l'installateur
 
-Repérer l'iPhone.
-
-Tester ensuite l'accès CoreDevice :
+Depuis la racine du dépôt :
 
 ```bash
-xcrun devicectl device info details \
-  --device VOTRE_DEVICE_ID
+chmod +x Tools/install-renew-ios.sh
+chmod +x Tools/renew-ios-wifi.sh
 ```
 
-Si cette commande fonctionne sans câble, le Mac voit bien l'iPhone via le réseau.
+Puis :
+
+```bash
+Tools/install-renew-ios.sh
+```
+
+Dans le cas courant où un seul iPhone et un seul certificat Apple Development valide sont disponibles, aucune édition manuelle de fichier n'est nécessaire.
+
+L'installateur :
+
+1. localise automatiquement le dépôt ;
+2. vérifie la présence de Xcode et des outils nécessaires ;
+3. détecte les appareils iOS physiques connus de CoreDevice ;
+4. détermine l'identifiant utilisé par `devicectl` ;
+5. détermine l'UDID utilisé comme destination par `xcodebuild` ;
+6. détecte les certificats Apple Development valides ;
+7. génère le fichier `renew-ios.conf` ;
+8. génère le LaunchAgent macOS ;
+9. sauvegarde les éventuels fichiers existants avant de les remplacer ;
+10. valide le fichier `.plist` ;
+11. charge le LaunchAgent ;
+12. lance un premier renouvellement avec `renew-ios-wifi.sh --force`.
+
+Si plusieurs iPhone ou plusieurs certificats valides sont détectés, l'installateur affiche un menu numéroté.
 
 
-# 5. Deux identifiants peuvent être nécessaires
 
-Selon la version de Xcode, `devicectl` et `xcodebuild` peuvent utiliser deux identifiants différents pour le même iPhone.
+## 5. Fichiers générés
+
+### Configuration
+
+L'installateur crée :
+
+```text
+~/.config/lettres-et-scores/renew-ios.conf
+```
+
+avec des permissions restreintes à l'utilisateur.
+
+Le contenu ressemble à :
+
+```bash
+DEVICE_ID="..."
+XCODE_DEVICE_UDID="..."
+EXPECTED_SIGNING_CERT_SHA1="..."
+```
+
+Ces valeurs sont déterminées automatiquement.
+
+Le fichier contient :
+
+- `DEVICE_ID` : identifiant CoreDevice utilisé par `devicectl` ;
+- `XCODE_DEVICE_UDID` : identifiant de destination utilisé par `xcodebuild` ;
+- `EXPECTED_SIGNING_CERT_SHA1` : empreinte du certificat Apple Development autorisé à signer l'application.
+
+Il ne contient aucun mot de passe Apple.
+
+### LaunchAgent
+
+L'installateur crée :
+
+```text
+~/Library/LaunchAgents/be.bartjourquin.lettresetcores.renew-ios.plist
+```
+
+Le chemin absolu vers `renew-ios-wifi.sh` est inséré automatiquement.
+
+Le LaunchAgent exécute périodiquement le script de renouvellement.
+
+Par défaut :
+
+```text
+StartInterval = 1800 secondes
+```
+
+soit une vérification toutes les 30 minutes.
+
+Cela ne signifie pas que l'application est recompilée toutes les 30 minutes : `renew-ios-wifi.sh` utilise son fichier d'état pour quitter immédiatement lorsqu'aucune tentative n'est nécessaire.
+
+
+## 6. Vérifier l'installation
+
+Afficher la version de l'installateur :
+
+```bash
+Tools/install-renew-ios.sh --version
+```
+
+Afficher la version du script de renouvellement :
+
+```bash
+Tools/renew-ios-wifi.sh --version
+```
+
+Afficher son état :
+
+```bash
+Tools/renew-ios-wifi.sh --status
+```
+
+Afficher le LaunchAgent chargé :
+
+```bash
+launchctl print \
+  gui/$(id -u)/be.bartjourquin.lettresetcores.renew-ios
+```
+
+
+## 7. Options de l'installateur
+
+Afficher l'aide :
+
+```bash
+Tools/install-renew-ios.sh --help
+```
+
+### Installer sans effectuer immédiatement le premier test
+
+```bash
+Tools/install-renew-ios.sh --no-test
+```
+
+### Imposer un appareil précis
+
+```bash
+Tools/install-renew-ios.sh \
+  --device VOTRE_COREDEVICE_ID
+```
+
+### Imposer un certificat précis
+
+```bash
+Tools/install-renew-ios.sh \
+  --cert EMPREINTE_SHA1
+```
+
+### Accepter explicitement un nouveau certificat sans question interactive
+
+```bash
+Tools/install-renew-ios.sh --accept-new-cert
+```
+
+Cette option est destinée aux cas où le changement de certificat a déjà été vérifié et accepté par l'utilisateur.
+
+### Désinstaller la configuration automatique
+
+```bash
+Tools/install-renew-ios.sh --uninstall
+```
+
+Cette commande :
+
+- décharge le LaunchAgent ;
+- supprime le `.plist` généré ;
+- supprime la configuration locale.
+
+Le fichier d'état est conservé par défaut.
+
+
+# Quelques détails techniques du fonctionnement
+
+## 8. Deux identifiants pour le même iPhone
+
+Selon la version de Xcode, `devicectl` et `xcodebuild` peuvent utiliser deux identifiants différents pour le même appareil.
 
 Le script distingue donc :
 
@@ -132,31 +284,23 @@ Le script distingue donc :
 DEVICE_ID
 ```
 
-utilisé par `devicectl`, et :
+pour `devicectl`, et :
 
 ```text
 XCODE_DEVICE_UDID
 ```
 
-utilisé par `xcodebuild`.
+pour `xcodebuild`.
 
-## Identifiant CoreDevice
+L'installateur tente de déterminer automatiquement les deux.
 
-Lister les appareils :
+Pour diagnostic manuel :
 
 ```bash
 xcrun devicectl list devices
 ```
 
-L'identifiant utilisé par `devicectl` est à placer dans :
-
-```bash
-DEVICE_ID="..."
-```
-
-## UDID utilisé par Xcode
-
-Depuis la racine du dépôt :
+et :
 
 ```bash
 xcodebuild \
@@ -165,41 +309,27 @@ xcodebuild \
   -showdestinations
 ```
 
-Repérer la ligne de l'iPhone.
 
-Exemple :
+## 9. Vérification du Developer Disk Image
 
-```text
-{ platform:iOS, arch:arm64, id:00008130-XXXXXXXXXXXX, name:iPhone }
-```
+Le fait que l'iPhone soit visible par CoreDevice ne suffit pas toujours pour qu'il soit utilisable comme destination Xcode.
 
-La valeur de `id:` correspond à :
-
-```bash
-XCODE_DEVICE_UDID="..."
-```
-
-
-# 6. Vérifier le Developer Disk Image
-
-Le fait que `devicectl device info details` fonctionne ne suffit pas toujours à garantir que l'iPhone est prêt comme destination de développement Xcode.
-
-Tester explicitement les services DDI :
+Le script teste les services DDI avec :
 
 ```bash
 xcrun devicectl device info ddiServices \
-  --device VOTRE_DEVICE_ID
+  --device "$DEVICE_ID"
 ```
 
-Cette commande doit fonctionner.
+Si ce test échoue, le build n'est pas lancé.
 
-Pour afficher l'image DDI préférée par Xcode :
+Pour diagnostiquer manuellement :
 
 ```bash
 xcrun devicectl list preferredDDI
 ```
 
-## Si le DDI ne peut pas être monté
+### Si le DDI ne peut pas être monté
 
 Un message du type :
 
@@ -207,50 +337,77 @@ Un message du type :
 The developer disk image could not be mounted on this device
 ```
 
-signifie que l'iPhone est visible, mais pas encore prêt comme destination de développement.
+indique que l'iPhone est visible mais que ses services de développement ne sont pas prêts.
 
-Procédure :
+Dans ce cas :
 
 1. rebrancher temporairement l'iPhone ;
 2. le déverrouiller ;
 3. ouvrir Xcode ;
-4. ouvrir `Devices and Simulators` / `Device Hub` ;
+4. ouvrir **Devices and Simulators** / **Device Hub** ;
 5. sélectionner l'iPhone ;
 6. attendre la fin de la préparation ;
 7. vérifier Developer Mode ;
-8. vérifier que la version de Xcode prend en charge la version d'iOS installée ;
-9. lancer Lettres & Scores une fois depuis Xcode ;
-10. retester :
+8. vérifier la compatibilité de Xcode avec la version d'iOS ;
+9. lancer `LettresEtScores` une fois depuis Xcode ;
+10. relancer l'installateur ou le script.
+
+Après une mise à jour importante d'iOS ou de Xcode, cette préparation peut devoir être répétée.
+
+
+
+## 10. Compilation et provisioning
+
+Lorsque le renouvellement est nécessaire, le script utilise notamment :
 
 ```bash
-xcrun devicectl device info ddiServices \
-  --device VOTRE_DEVICE_ID
+xcodebuild \
+  -project LettresEtScores.xcodeproj \
+  -scheme LettresEtScores \
+  -configuration Debug \
+  -destination "platform=iOS,id=$XCODE_DEVICE_UDID" \
+  -allowProvisioningUpdates \
+  build
 ```
 
-Après certaines mises à jour d'iOS ou de Xcode, cette préparation peut devoir être répétée.
+`-allowProvisioningUpdates` permet à Xcode de gérer le provisioning via la signature automatique.
 
 
-# 7. Identifier le certificat Apple Development à conserver
+## 11. Vérification du certificat de signature
 
-Le script v3.1.2 vérifie que l'application est toujours signée avec le même certificat.
+Le script ne se contente pas de vérifier que le build a réussi.
 
-Lister les identités de signature :
+Il contrôle d'abord que le certificat enregistré dans :
 
 ```bash
-security find-identity -v -p codesigning
+EXPECTED_SIGNING_CERT_SHA1
 ```
+
+est toujours une identité valide dans le trousseau.
+
+Après compilation, il extrait également le certificat réellement utilisé pour signer `LettresEtScores.app` et calcule son empreinte SHA‑1.
+
+Les deux valeurs doivent être identiques.
 
 Exemple :
 
 ```text
-1) ABCDEF0123456789ABCDEF0123456789ABCDEF01 \
-   "Apple Development: example@example.com (XXXXXXXXXX)"
+[LettresEtScores] Certificat attendu : ABCDEF...
+[LettresEtScores] Certificat utilisé  : ABCDEF...
+[LettresEtScores] Certificat de signature conforme.
 ```
 
-L'empreinte SHA‑1 à conserver est :
+Si elles diffèrent, l'application **n'est pas installée**.
 
-```text
-ABCDEF0123456789ABCDEF0123456789ABCDEF01
+Cette vérification vise notamment à éviter qu'un nouveau certificat soit installé silencieusement et provoque une nouvelle demande « Développeur non approuvé » sur l'iPhone.
+
+
+## 12. Que faire si le certificat change ?
+
+Afficher les identités valides :
+
+```bash
+security find-identity -v -p codesigning
 ```
 
 Les certificats accompagnés de :
@@ -261,271 +418,43 @@ Les certificats accompagnés de :
 
 sont révoqués et ne doivent pas être utilisés.
 
-Le script vérifiera que l'empreinte attendue existe toujours parmi les identités valides avant de lancer le build.
-
-
-# 8. Installer le script
-
-Depuis la racine du dépôt :
+Si le certificat précédemment épinglé n'existe plus, relancer simplement :
 
 ```bash
-chmod +x Tools/renew-ios-wifi.sh
+Tools/install-renew-ios.sh
 ```
 
-Vérifier la version :
+L'installateur lit la configuration existante.
+
+S'il constate que le certificat précédemment utilisé n'est plus disponible et qu'un autre certificat doit être adopté, il affiche :
+
+- l'ancienne empreinte ;
+- la nouvelle empreinte ;
+
+et demande une confirmation explicite avant de modifier la configuration.
+
+Il ne doit donc pas adopter silencieusement un nouveau certificat.
+
+Pour un changement volontaire déjà vérifié, on peut aussi utiliser :
 
 ```bash
-Tools/renew-ios-wifi.sh --version
+Tools/install-renew-ios.sh --accept-new-cert
 ```
 
-La version attendue est :
-
-```text
-3.1.2
-```
-
-Au lancement, le script affiche également :
-
-```text
-[LettresEtScores] renew-ios-wifi.sh v3.1.2
-```
-
-Cela permet d'éviter toute ambiguïté avec une ancienne version du script.
-
-
-# 9. Créer la configuration locale
-
-Créer le répertoire :
+ou imposer explicitement l'empreinte :
 
 ```bash
-mkdir -p ~/.config/lettres-et-scores
+Tools/install-renew-ios.sh \
+  --cert NOUVELLE_EMPREINTE_SHA1
 ```
 
-Copier le modèle :
+Après installation d'une application signée avec un nouveau certificat, iOS peut demander une nouvelle approbation du développeur.
 
-```bash
-cp Tools/renew-ios.conf.example \
-   ~/.config/lettres-et-scores/renew-ios.conf
-```
 
-Éditer :
 
-```bash
-nano ~/.config/lettres-et-scores/renew-ios.conf
-```
+## 13. Message « Développeur non approuvé »
 
-Exemple de configuration :
-
-```bash
-DEVICE_ID="VOTRE_COREDEVICE_ID"
-
-XCODE_DEVICE_UDID="VOTRE_XCODE_UDID"
-
-EXPECTED_SIGNING_CERT_SHA1="VOTRE_EMPREINTE_SHA1"
-```
-
-Exemple complet :
-
-```bash
-DEVICE_ID="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-XCODE_DEVICE_UDID="00008130-XXXXXXXXXXXXXXXX"
-EXPECTED_SIGNING_CERT_SHA1="ABCDEF0123456789ABCDEF0123456789ABCDEF01"
-```
-
-Le fichier peut également contenir des valeurs optionnelles :
-
-```bash
-# PROJECT="$HOME/git/LettresEtScores-iOS/LettresEtScores.xcodeproj"
-# SCHEME="LettresEtScores"
-# CONFIGURATION="Debug"
-# APP_NAME="LettresEtScores.app"
-
-# Commencer les tentatives 12 h avant l'expiration.
-# RENEW_WINDOW_HOURS=12
-
-# Un profil doit disposer d'au moins 120 h de validité pour être
-# considéré comme réellement renouvelé.
-# MIN_FRESH_VALIDITY_HOURS=120
-
-# Délai entre deux tentatives lorsque Xcode réutilise encore
-# l'ancien profil.
-# RETRY_AFTER_SECONDS=1800
-```
-
-> Ne pas pousser `~/.config/lettres-et-scores/renew-ios.conf` sur GitHub.
-
-
-# 10. Premier test manuel
-
-Avec l'iPhone déverrouillé et accessible par Wi‑Fi :
-
-```bash
-Tools/renew-ios-wifi.sh --force
-```
-
-Le script effectue successivement les opérations suivantes.
-
-## 10.1 Vérification du certificat attendu
-
-Le script vérifie que :
-
-```bash
-EXPECTED_SIGNING_CERT_SHA1
-```
-
-correspond toujours à une identité valide dans le trousseau.
-
-Exemple :
-
-```text
-[LettresEtScores] Vérification du certificat Apple Development attendu…
-[LettresEtScores] Certificat attendu présent et valide.
-```
-
-## 10.2 Vérification de l'iPhone
-
-```text
-[LettresEtScores] Vérification de l'iPhone via CoreDevice…
-```
-
-Si l'iPhone n'est pas joignable :
-
-```text
-[LettresEtScores] iPhone non joignable. Aucun build ni changement effectué.
-```
-
-Le script quitte alors sans erreur et sans lancer de compilation.
-
-## 10.3 Vérification du DDI
-
-```text
-[LettresEtScores] Vérification des services Developer Disk Image (DDI)…
-```
-
-Puis :
-
-```text
-[LettresEtScores] Services DDI disponibles.
-```
-
-Si le DDI est indisponible, le script s'arrête avant le build.
-
-## 10.4 Recherche de la destination Xcode
-
-Le script vérifie la destination avec :
-
-```bash
-xcodebuild \
-  -project LettresEtScores.xcodeproj \
-  -scheme LettresEtScores \
-  -showdestinations
-```
-
-Puis utilise :
-
-```bash
--destination "platform=iOS,id=$XCODE_DEVICE_UDID"
-```
-
-## 10.5 Compilation et signature
-
-Le build est réalisé avec :
-
-```bash
-xcodebuild \
-  -project LettresEtScores.xcodeproj \
-  -scheme LettresEtScores \
-  -configuration Debug \
-  -destination "platform=iOS,id=$XCODE_DEVICE_UDID" \
-  -derivedDataPath .renew-derived-data \
-  -allowProvisioningUpdates \
-  build
-```
-
-L'option :
-
-```text
--allowProvisioningUpdates
-```
-
-permet à Xcode de gérer automatiquement le provisioning.
-
-
-# 11. Vérification du certificat réellement utilisé
-
-Après compilation, le script extrait le certificat utilisé pour signer :
-
-```text
-LettresEtScores.app
-```
-
-La commande utilisée est équivalente à :
-
-```bash
-cd /un/repertoire/temporaire
-
-codesign \
-  --display \
-  --extract-certificates \
-  /chemin/LettresEtScores.app
-```
-
-`codesign` crée alors :
-
-```text
-codesign0
-codesign1
-...
-```
-
-Le fichier :
-
-```text
-codesign0
-```
-
-correspond au certificat feuille utilisé pour signer l'application.
-
-Le script calcule son empreinte SHA‑1 avec `openssl` et compare :
-
-```text
-Certificat attendu
-```
-
-et :
-
-```text
-Certificat utilisé
-```
-
-Exemple normal :
-
-```text
-[LettresEtScores] Certificat attendu : ABCDEF...
-[LettresEtScores] Certificat utilisé  : ABCDEF...
-[LettresEtScores] Certificat de signature conforme.
-```
-
-## Si le certificat change
-
-Le script s'arrête immédiatement :
-
-```text
-ERREUR: L'identité de signature a changé.
-
-Attendu : ...
-Obtenu  : ...
-
-L'application N'A PAS été installée sur l'iPhone.
-```
-
-Cette sécurité permet d'éviter qu'une nouvelle identité de signature soit installée silencieusement sur l'iPhone.
-
-
-
-# 12. Message « Développeur non approuvé »
-
-Lors de la première installation avec un nouveau certificat Apple Development, iOS peut afficher :
+Lors de la première installation avec une identité Apple Development donnée, ou après un changement de certificat, iOS peut afficher :
 
 ```text
 Développeur non approuvé
@@ -541,57 +470,42 @@ Réglages
 → Faire confiance
 ```
 
-Le libellé exact peut varier légèrement selon la version d'iOS.
+Le libellé exact peut varier selon la version d'iOS.
 
-Cette approbation doit normalement rester valable tant que le même certificat Apple Development continue d'être utilisé.
-
-C'est précisément la raison pour laquelle le script v3.1.2 vérifie l'empreinte du certificat avant chaque installation.
+Cette approbation devrait normalement rester valable tant que la même identité de développement est utilisée.
 
 
-# 13. Vérification du profil de provisioning
 
-Après le build, le script lit :
+## 14. Vérification du profil de provisioning
 
-```text
-embedded.mobileprovision
-```
-
-dans :
+Après compilation, `renew-ios-wifi.sh` lit :
 
 ```text
-LettresEtScores.app
+LettresEtScores.app/embedded.mobileprovision
 ```
 
-Il extrait notamment :
+et extrait notamment :
 
 - l'UUID du profil ;
 - sa date d'expiration.
 
-La simple réussite d'un build ne suffit pas toujours à prouver qu'un nouveau profil a été créé : Xcode peut parfois réutiliser un profil encore valable.
+La réussite d'un build ne signifie pas nécessairement qu'un nouveau profil a été créé : Xcode peut réutiliser un profil encore valable.
 
-Le script vérifie donc la durée de validité restante.
-
-Par défaut :
+Par défaut, le script considère qu'un profil fraîchement renouvelé doit disposer d'au moins :
 
 ```text
-MIN_FRESH_VALIDITY_HOURS=120
+120 heures
 ```
 
-Un profil doit donc avoir au moins cinq jours de validité restante pour être considéré comme réellement renouvelé.
+de validité restante.
 
-Si Xcode réutilise encore un ancien profil proche de son expiration :
-
-```text
-[LettresEtScores] Xcode a réutilisé un profil qui expire dans moins de 120 h.
-[LettresEtScores] Pas de réinstallation inutile.
-```
-
-Le script planifie alors une nouvelle tentative plus tard.
+Si Xcode réutilise encore un ancien profil proche de son expiration, l'application n'est pas réinstallée inutilement et une nouvelle tentative est programmée.
 
 
-# 14. Installation sur l'iPhone par Wi‑Fi
 
-Si toutes les vérifications sont satisfaites, l'installation est effectuée avec :
+## 15. Installation par Wi‑Fi
+
+Si toutes les vérifications sont satisfaites, l'application est installée avec :
 
 ```bash
 xcrun devicectl device install app \
@@ -599,146 +513,49 @@ xcrun devicectl device install app \
   "/chemin/LettresEtScores.app"
 ```
 
-Le script ne supprime pas volontairement l'application avant installation.
+Le script ne désinstalle pas volontairement l'application existante.
 
-Il installe la nouvelle build utilisant le même Bundle Identifier.
-
-Cela permet normalement de conserver les données de l'application.
+La nouvelle build conserve le même Bundle Identifier, ce qui permet normalement de préserver les données de l'application.
 
 
-# 15. Vérifier l'état du renouvellement
+# Automatisation
 
-Exécuter :
+## 16. Fonctionnement du LaunchAgent
 
-```bash
-Tools/renew-ios-wifi.sh --status
-```
-
-Exemple :
+L'installateur charge automatiquement :
 
 ```text
-[LettresEtScores] Configuration       : ...
-[LettresEtScores] CoreDevice ID       : ...
-[LettresEtScores] Xcode Device UDID   : ...
-[LettresEtScores] Certificat attendu  : ...
-[LettresEtScores] Profil UUID         : ...
-[LettresEtScores] Expiration          : ...
-[LettresEtScores] Prochain essai      : ...
+be.bartjourquin.lettresetcores.renew-ios
 ```
 
-Le fichier d'état est stocké dans :
+Le LaunchAgent lance périodiquement :
+
+```text
+Tools/renew-ios-wifi.sh
+```
+
+Le script examine d'abord :
 
 ```text
 ~/.local/state/lettres-et-scores/renew-ios.state
 ```
 
+Si la prochaine fenêtre de renouvellement n'est pas encore atteinte, il quitte immédiatement.
 
-# 16. Automatisation avec launchd
+Si l'iPhone est absent ou non joignable, il quitte également sans effectuer de build.
 
-Le dépôt contient un modèle :
-
-```text
-Tools/be.bartjourquin.lettresetcores.renew-ios.plist.example
-```
-
-Créer le LaunchAgent utilisateur :
-
-```bash
-cp \
-  Tools/be.bartjourquin.lettresetcores.renew-ios.plist.example \
-  ~/Library/LaunchAgents/be.bartjourquin.lettresetcores.renew-ios.plist
-```
-
-Éditer :
-
-```bash
-nano \
-  ~/Library/LaunchAgents/be.bartjourquin.lettresetcores.renew-ios.plist
-```
-
-Modifier le chemin absolu vers le script.
-
-Exemple :
-
-```xml
-<string>/Users/moncompte/git/LettresEtScores-iOS/Tools/renew-ios-wifi.sh</string>
-```
-
-Le chemin doit être absolu.
+Le LaunchAgent réessaiera lors d'une exécution ultérieure.
 
 
-# 17. Vérifier le fichier plist
+## 17. Journaux
 
-Exécuter :
-
-```bash
-plutil -lint \
-  ~/Library/LaunchAgents/be.bartjourquin.lettresetcores.renew-ios.plist
-```
-
-La sortie attendue est :
-
-```text
-OK
-```
-
-
-# 18. Activer le LaunchAgent
-
-Charger l'automatisation :
-
-```bash
-launchctl bootstrap gui/$(id -u) \
-  ~/Library/LaunchAgents/be.bartjourquin.lettresetcores.renew-ios.plist
-```
-
-Pour provoquer immédiatement une exécution :
-
-```bash
-launchctl kickstart \
-  gui/$(id -u)/be.bartjourquin.lettresetcores.renew-ios
-```
-
-
-# 19. Fréquence des vérifications
-
-Le modèle de LaunchAgent utilise :
-
-```xml
-<key>StartInterval</key>
-<integer>1800</integer>
-```
-
-soit :
-
-```text
-30 minutes
-```
-
-Cela ne signifie pas que l'application est recompilée toutes les 30 minutes.
-
-Le script consulte d'abord son fichier d'état :
-
-```text
-~/.local/state/lettres-et-scores/renew-ios.state
-```
-
-Si aucune tentative n'est nécessaire, il quitte immédiatement.
-
-La plupart des exécutions sont donc très légères.
-
-La compilation ne commence que lorsqu'une nouvelle tentative de renouvellement est nécessaire.
-
-
-# 20. Journaux de l'automatisation
-
-Le LaunchAgent écrit ses sorties dans :
+Les sorties standard sont écrites dans :
 
 ```text
 /tmp/lettres-et-scores-renew.log
 ```
 
-et ses erreurs dans :
+Les erreurs sont écrites dans :
 
 ```text
 /tmp/lettres-et-scores-renew-error.log
@@ -756,94 +573,57 @@ Afficher les dernières erreurs :
 tail -100 /tmp/lettres-et-scores-renew-error.log
 ```
 
----
 
-# 21. Tester l'automatisation
+## 18. Forcer un test ou un renouvellement
 
-Après activation :
+Pour ignorer temporairement la prochaine date enregistrée :
 
 ```bash
-launchctl kickstart \
-  gui/$(id -u)/be.bartjourquin.lettresetcores.renew-ios
+Tools/renew-ios-wifi.sh --force
+```
+
+Cette commande force une tentative, mais les contrôles du certificat, du DDI et du provisioning restent actifs.
+
+
+## 19. Réinstaller ou mettre à jour la procédure
+
+`install-renew-ios.sh` est conçu pour pouvoir être relancé.
+
+Par exemple après :
+
+- une mise à jour du script ;
+- un déplacement du dépôt ;
+- un changement d'iPhone ;
+- un changement de certificat ;
+- une modification de la configuration de Xcode.
+
+Exécuter :
+
+```bash
+Tools/install-renew-ios.sh
+```
+
+Lorsqu'un fichier de configuration ou un LaunchAgent existe déjà, l'installateur en crée une sauvegarde horodatée avant de le remplacer.
+
+Exemple :
+
+```text
+renew-ios.conf.bak-20260906-180000
+be.bartjourquin.lettresetcores.renew-ios.plist.bak-20260906-180000
+```
+
+
+# Dépannage
+
+## 20. Aucun iPhone n'est détecté
+
+Tester :
+
+```bash
+xcrun devicectl list devices
 ```
 
 Puis :
-
-```bash
-tail -f /tmp/lettres-et-scores-renew.log
-```
-
-Le début normal ressemble à :
-
-```text
-[LettresEtScores] renew-ios-wifi.sh v3.1.2
-[LettresEtScores] Vérification du certificat Apple Development attendu…
-[LettresEtScores] Certificat attendu présent et valide.
-```
-
-Selon l'état du profil, le script peut ensuite :
-
-- quitter immédiatement ;
-- constater que l'iPhone est absent ;
-- lancer un renouvellement ;
-- refuser une installation si le certificat a changé.
-
-
-# 22. Modifier le LaunchAgent
-
-Avant toute modification importante du fichier `.plist`, le décharger :
-
-```bash
-launchctl bootout gui/$(id -u) \
-  ~/Library/LaunchAgents/be.bartjourquin.lettresetcores.renew-ios.plist
-```
-
-Modifier le fichier.
-
-Puis le recharger :
-
-```bash
-launchctl bootstrap gui/$(id -u) \
-  ~/Library/LaunchAgents/be.bartjourquin.lettresetcores.renew-ios.plist
-```
-
-
-# 23. Désactiver l'automatisation
-
-Décharger le LaunchAgent :
-
-```bash
-launchctl bootout gui/$(id -u) \
-  ~/Library/LaunchAgents/be.bartjourquin.lettresetcores.renew-ios.plist
-```
-
-Pour supprimer complètement l'automatisation :
-
-```bash
-rm \
-  ~/Library/LaunchAgents/be.bartjourquin.lettresetcores.renew-ios.plist
-```
-
-La configuration locale peut également être supprimée :
-
-```bash
-rm ~/.config/lettres-et-scores/renew-ios.conf
-```
-
-Et l'état :
-
-```bash
-rm -rf ~/.local/state/lettres-et-scores
-```
-
-Cela ne désinstalle pas Lettres & Scores de l'iPhone.
-
-
-# 24. Dépannage
-
-## L'iPhone n'est pas joignable
-
-Tester :
 
 ```bash
 xcrun devicectl device info details \
@@ -858,34 +638,34 @@ Vérifier :
 - que le Mac et l'iPhone peuvent communiquer sur le réseau.
 
 
-## Le DDI ne fonctionne pas
 
-Tester :
+## 21. Plusieurs appareils sont détectés
 
-```bash
-xcrun devicectl device info ddiServices \
-  --device VOTRE_DEVICE_ID
-```
+L'installateur affiche un menu.
 
-Puis :
+On peut également préciser directement l'appareil :
 
 ```bash
-xcrun devicectl list preferredDDI
+Tools/install-renew-ios.sh \
+  --device COREDEVICE_ID
 ```
 
-Si nécessaire :
 
-- rebrancher l'iPhone ;
-- ouvrir Xcode ;
-- attendre la préparation dans Device Hub ;
-- vérifier Developer Mode ;
-- vérifier la compatibilité entre Xcode et iOS ;
-- lancer l'application une fois depuis Xcode.
+## 22. Plusieurs certificats sont détectés
+
+L'installateur affiche les identités Apple Development valides et demande laquelle doit être utilisée.
+
+On peut imposer une empreinte :
+
+```bash
+Tools/install-renew-ios.sh \
+  --cert EMPREINTE_SHA1
+```
 
 
-## `xcodebuild` ne trouve pas la destination
+## 23. Xcode ne trouve pas l'iPhone comme destination
 
-Lister les destinations :
+Depuis la racine du dépôt :
 
 ```bash
 xcodebuild \
@@ -894,69 +674,12 @@ xcodebuild \
   -showdestinations
 ```
 
-Vérifier la valeur :
+La ligne correspondant à l'iPhone doit apparaître sans champ `error:`.
 
-```bash
-XCODE_DEVICE_UDID
-```
-
-dans la configuration locale.
+Si elle contient une erreur relative au Developer Disk Image, reprendre la procédure de préparation DDI décrite plus haut.
 
 
-## Le certificat attendu n'est plus valide
-
-Lister :
-
-```bash
-security find-identity -v -p codesigning
-```
-
-Si l'empreinte attendue n'apparaît plus parmi les identités valides, le script s'arrête volontairement.
-
-Il faut alors déterminer pourquoi le certificat a changé avant de mettre à jour :
-
-```bash
-EXPECTED_SIGNING_CERT_SHA1
-```
-
-
-## Xcode utilise un nouveau certificat
-
-Le script affiche :
-
-```text
-L'identité de signature a changé.
-```
-
-L'application n'est pas installée.
-
-Avant de modifier la configuration :
-
-1. vérifier les certificats dans Xcode ;
-2. vérifier les certificats dans le trousseau ;
-3. déterminer si le changement était attendu ;
-4. approuver volontairement le nouveau certificat si nécessaire ;
-5. mettre ensuite à jour `EXPECTED_SIGNING_CERT_SHA1`.
-
-
-## Message « Développeur non approuvé »
-
-Sur l'iPhone :
-
-```text
-Réglages
-→ Général
-→ VPN et gestion de l'appareil
-→ App développeur
-→ Faire confiance
-```
-
-Cette étape est normalement nécessaire uniquement lorsqu'un nouveau certificat de développement est utilisé.
-
-
-## Le script compile mais ne réinstalle pas l'application
-
-C'est volontaire si le profil généré n'est pas considéré comme suffisamment récent.
+## 24. Le script compile mais n'installe rien
 
 Afficher l'état :
 
@@ -964,30 +687,59 @@ Afficher l'état :
 Tools/renew-ios-wifi.sh --status
 ```
 
-Forcer une nouvelle tentative :
+Il est possible que :
+
+- le profil actuel soit encore suffisamment valable ;
+- Xcode ait réutilisé un ancien profil ;
+- le certificat de signature ne corresponde plus au certificat attendu ;
+- l'iPhone ne soit plus joignable ;
+- le DDI ne soit pas disponible.
+
+Consulter également :
 
 ```bash
-Tools/renew-ios-wifi.sh --force
+tail -100 /tmp/lettres-et-scores-renew-error.log
 ```
 
 
-# 25. Bonnes pratiques
+# Désinstallation
 
-Il est recommandé de :
+## 25. Désinstaller la procédure
 
-- conserver le même certificat Apple Development aussi longtemps que possible ;
-- ne pas révoquer volontairement le certificat utilisé par le script ;
-- ne pas supprimer l'application de l'iPhone avant un renouvellement ;
-- conserver le même Bundle Identifier ;
-- ne pas versionner la configuration locale ;
-- laisser Xcode installé sur le Mac ;
-- conserver le Mac connecté au compte Apple utilisé pour signer ;
-- vérifier les journaux après une mise à jour importante d'iOS ou de Xcode.
+La méthode recommandée est :
+
+```bash
+Tools/install-renew-ios.sh --uninstall
+```
+
+Cette commande décharge le LaunchAgent et supprime :
+
+```text
+~/.config/lettres-et-scores/renew-ios.conf
+~/Library/LaunchAgents/be.bartjourquin.lettresetcores.renew-ios.plist
+```
+
+Elle ne désinstalle pas `Lettres & Scores` de l'iPhone.
+
+Elle conserve volontairement le fichier d'état.
+
+Pour le supprimer également :
+
+```bash
+rm -rf ~/.local/state/lettres-et-scores
+```
 
 
-# 26. Résumé du fonctionnement
+# Résumé
 
-Le cycle automatisé est le suivant :
+Après la préparation initiale de l'iPhone dans Xcode, l'installation normale se résume à :
+
+```bash
+chmod +x Tools/install-renew-ios.sh Tools/renew-ios-wifi.sh
+Tools/install-renew-ios.sh
+```
+
+Le cycle automatisé devient ensuite :
 
 ```text
 launchd
@@ -1013,11 +765,13 @@ installation par Wi‑Fi avec devicectl
 enregistrement de la prochaine fenêtre de renouvellement
 ```
 
-Ainsi, tant que :
+Tant que :
 
 - le Mac est allumé ;
 - l'iPhone est accessible ;
 - Xcode reste correctement configuré ;
 - le certificat attendu reste valide ;
 
-le renouvellement de Lettres & Scores peut se faire sans intervention manuelle régulière.
+le renouvellement peut fonctionner sans intervention manuelle régulière.
+
+Cette automatisation reste toutefois expérimentale et doit être considérée comme une aide pratique, pas comme un mécanisme officiel ou garanti par Apple.
